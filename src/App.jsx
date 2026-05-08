@@ -6,25 +6,34 @@ import {
   ChevronRight,
   Clock3,
   ClipboardCheck,
+  Copy,
   FileText,
   LayoutDashboard,
   ListChecks,
   Plus,
   RotateCcw,
+  Settings,
+  TrendingUp,
   Trash2,
 } from 'lucide-react';
 import {
+  cloneTaskForDate,
   deleteRecurringCourse,
   deleteReview,
   deleteTask,
   filterTasks,
+  getCompletionRate,
+  getNextDateKey,
   getReviewForDate,
+  getSubjectSummary,
   getTaskSummary,
   getTasksForDate,
   getTodayKey,
   getTodayTimeline,
+  getWeekSchedule,
   getWeeklyCourses,
   groupTasksByTimeBlock,
+  updateSettings,
   upsertRecurringCourse,
   upsertReview,
   upsertTask,
@@ -36,6 +45,7 @@ const navItems = [
   { id: 'tasks', label: '每日任务', icon: ListChecks },
   { id: 'courses', label: '固定课程', icon: CalendarDays },
   { id: 'reviews', label: '每日复盘', icon: FileText },
+  { id: 'settings', label: '设置', icon: Settings },
 ];
 
 const statusLabels = {
@@ -102,7 +112,7 @@ export default function App() {
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 border-b border-white/70 bg-[#f7f4ee]/90 px-4 py-3 backdrop-blur lg:hidden">
           <Brand childName={state.settings.childName} compact />
-          <div className="mt-3 grid grid-cols-4 gap-2">
+          <div className="mt-3 grid grid-cols-5 gap-2">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -141,6 +151,7 @@ export default function App() {
               onStateChange={setState}
             />
           )}
+          {activePage === 'settings' && <SettingsPage state={state} onStateChange={setState} />}
         </main>
       </div>
     </div>
@@ -174,6 +185,9 @@ function NavButton({ item, active, onClick }) {
 function SchedulePage({ state, summary, todayTasks, onNavigate }) {
   const timeline = getTodayTimeline(state, new Date());
   const weeklyCourses = getWeeklyCourses(state);
+  const weekSchedule = getWeekSchedule(state, new Date());
+  const subjectSummary = getSubjectSummary(todayTasks);
+  const completionRate = getCompletionRate(todayTasks);
   const hasReview = Boolean(getReviewForDate(state, getTodayKey(new Date())));
 
   return (
@@ -217,8 +231,33 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
         <Metric label="今日任务" value={summary.total} />
         <Metric label="已完成" value={summary.completed} tone="green" />
         <Metric label="未完成" value={summary.incomplete} tone="amber" />
-        <Metric label="待复盘" value={summary.pendingReview} tone="blue" />
+        <Metric label="完成率" value={`${completionRate}%`} tone="blue" />
       </div>
+
+      <Panel title="本周日历" action={<CalendarDays size={18} />}>
+        <div className="week-grid">
+          {weekSchedule.map((day) => (
+            <div key={day.dateKey} className="week-day">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{day.weekday}</p>
+                  <p className="text-xs text-slate-400">{day.dayLabel}</p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{day.items.length}</span>
+              </div>
+              <div className="space-y-2">
+                {day.items.slice(0, 3).map((item) => (
+                  <div key={`${day.dateKey}-${item.type}-${item.id}`} className={`mini-event mini-event-${item.type}`}>
+                    <span>{item.time}</span>
+                    <p>{item.title}</p>
+                  </div>
+                ))}
+                {day.items.length === 0 && <p className="text-xs text-slate-400">暂无安排</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Panel>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="今日任务摘要" action={<ClipboardCheck size={18} />}>
@@ -239,14 +278,35 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
           </div>
         </Panel>
 
-        <Panel title="待处理提醒" action={<RotateCcw size={18} />}>
+        <Panel title="科目完成概览" action={<TrendingUp size={18} />}>
+          <div className="space-y-3">
+            {subjectSummary.map((item) => (
+              <div key={item.subject}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-medium text-slate-700">{item.subject}</span>
+                  <span className="text-slate-400">{item.completed}/{item.total}</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div
+                    className="h-2 rounded-full bg-slate-900"
+                    style={{ width: `${Math.round((item.completed / item.total) * 100)}%` }}
+                  />
+                </div>
+                {item.pendingReview > 0 && <p className="mt-1 text-xs text-sky-600">{item.pendingReview} 项待复盘</p>}
+              </div>
+            ))}
+            {subjectSummary.length === 0 && <p className="text-sm text-slate-400">今天还没有任务。</p>}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title="待处理提醒" action={<RotateCcw size={18} />}>
           <div className="space-y-3">
             <Reminder active={!hasReview} text={hasReview ? '今日复盘已记录' : '今天还需要填写复盘'} />
             <Reminder active={summary.incomplete > 0} text={`${summary.incomplete} 个任务仍未完成`} />
             <Reminder active={summary.pendingReview > 0} text={`${summary.pendingReview} 个任务需要复盘`} />
           </div>
-        </Panel>
-      </div>
+      </Panel>
     </section>
   );
 }
@@ -301,6 +361,7 @@ function TasksPage({ state, date, filters, tasks, onDateChange, onFiltersChange,
               tasks={grouped[block] || []}
               onEdit={setForm}
               onDelete={(id) => onStateChange((current) => deleteTask(current, id))}
+              onClone={(id) => onStateChange((current) => cloneTaskForDate(current, id, getNextDateKey(date), crypto.randomUUID()))}
               onStatus={(task, status) => onStateChange((current) => upsertTask(current, { ...task, status }))}
             />
           ))}
@@ -404,7 +465,44 @@ function ReviewsPage({ state, date, review, onDateChange, onStateChange }) {
   );
 }
 
-function TaskGroup({ title, tasks, onEdit, onDelete, onStatus }) {
+function SettingsPage({ state, onStateChange }) {
+  const [form, setForm] = useState(state.settings);
+
+  useEffect(() => {
+    setForm(state.settings);
+  }, [state.settings]);
+
+  function submitSettings(event) {
+    event.preventDefault();
+    onStateChange((current) => updateSettings(current, form));
+  }
+
+  return (
+    <section className="space-y-6">
+      <PageTitle title="设置" subtitle="调整孩子姓名和默认科目，让系统更贴近家庭使用。" />
+      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+        <Panel title="基础信息" action={<Settings size={18} />}>
+          <form className="form-grid" onSubmit={submitSettings}>
+            <Input label="孩子姓名" value={form.childName} onChange={(value) => setForm({ ...form, childName: value })} />
+            <Textarea
+              label="默认科目"
+              value={form.subjects.join('、')}
+              onChange={(value) => setForm({ ...form, subjects: value.split(/[、,，\s]+/).filter(Boolean) })}
+            />
+            <button className="primary-button" type="submit"><Settings size={18} />保存设置</button>
+          </form>
+        </Panel>
+        <Panel title="当前科目" action={<BookOpen size={18} />}>
+          <div className="flex flex-wrap gap-2">
+            {form.subjects.map((subject) => <span key={subject} className="subject-chip">{subject}</span>)}
+          </div>
+        </Panel>
+      </div>
+    </section>
+  );
+}
+
+function TaskGroup({ title, tasks, onEdit, onDelete, onClone, onStatus }) {
   return (
     <Panel title={`${title} · ${tasks.length} 项`}>
       <div className="space-y-3">
@@ -423,6 +521,7 @@ function TaskGroup({ title, tasks, onEdit, onDelete, onStatus }) {
               <select className="small-select" value={task.status} onChange={(event) => onStatus(task, event.target.value)}>
                 {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
+              <button className="icon-button" onClick={() => onClone(task.id)} type="button" aria-label="复制到明天"><Copy size={16} /></button>
               <RowActions onEdit={() => onEdit(task)} onDelete={() => onDelete(task.id)} />
             </div>
           </div>

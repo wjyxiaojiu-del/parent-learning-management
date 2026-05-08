@@ -32,6 +32,29 @@ export function getTaskSummary(tasks) {
   };
 }
 
+export function getCompletionRate(tasks) {
+  if (tasks.length === 0) return 0;
+  const completed = tasks.filter((task) => task.status === 'done').length;
+  return Math.round((completed / tasks.length) * 100);
+}
+
+export function getSubjectSummary(tasks) {
+  const bySubject = new Map();
+  tasks.forEach((task) => {
+    const current = bySubject.get(task.subject) || {
+      subject: task.subject,
+      total: 0,
+      completed: 0,
+      pendingReview: 0,
+    };
+    current.total += 1;
+    if (task.status === 'done') current.completed += 1;
+    if (task.status === 'review') current.pendingReview += 1;
+    bySubject.set(task.subject, current);
+  });
+  return [...bySubject.values()].sort((a, b) => b.total - a.total || a.subject.localeCompare(b.subject));
+}
+
 export function getTodayTimeline(state, date = new Date()) {
   const dateKey = getTodayKey(date);
   const weekday = getDayName(date);
@@ -51,6 +74,31 @@ export function getTodayTimeline(state, date = new Date()) {
   return [...taskItems, ...courseItems].sort(compareByTime);
 }
 
+export function getWeekSchedule(state, date = new Date()) {
+  const start = getMonday(date);
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + index);
+    const dateKey = getTodayKey(day);
+    const weekday = getDayName(day);
+    const tasks = getTasksForDate(state, dateKey).map((task) => ({
+      ...task,
+      type: 'task',
+      time: task.startTime || blockDefaultTime(task.timeBlock),
+    }));
+    const courses = state.recurringCourses
+      .filter((course) => course.weekday === weekday)
+      .map((course) => ({ ...course, type: 'course', time: course.startTime }));
+
+    return {
+      dateKey,
+      weekday,
+      dayLabel: `${day.getMonth() + 1}/${day.getDate()}`,
+      items: [...tasks, ...courses].sort(compareByTime),
+    };
+  });
+}
+
 export function upsertTask(state, task) {
   const exists = state.tasks.some((item) => item.id === task.id);
   return {
@@ -63,6 +111,23 @@ export function deleteTask(state, taskId) {
   return {
     ...state,
     tasks: state.tasks.filter((task) => task.id !== taskId),
+  };
+}
+
+export function cloneTaskForDate(state, taskId, dateKey, newId) {
+  const task = state.tasks.find((item) => item.id === taskId);
+  if (!task) return state;
+  return {
+    ...state,
+    tasks: [
+      ...state.tasks,
+      {
+        ...task,
+        id: newId,
+        date: dateKey,
+        status: 'todo',
+      },
+    ],
   };
 }
 
@@ -125,6 +190,22 @@ export function getReviewForDate(state, dateKey) {
   return state.reviews.find((review) => review.date === dateKey) || null;
 }
 
+export function getNextDateKey(dateKey) {
+  const date = parseDateKey(dateKey);
+  date.setDate(date.getDate() + 1);
+  return getTodayKey(date);
+}
+
+export function updateSettings(state, settings) {
+  return {
+    ...state,
+    settings: {
+      ...state.settings,
+      ...settings,
+    },
+  };
+}
+
 function cloneDefaultState() {
   return structuredCloneSafe(getDefaultState());
 }
@@ -169,6 +250,19 @@ function compareByTime(a, b) {
 
 function compareTime(a = '23:59', b = '23:59') {
   return a.localeCompare(b);
+}
+
+function getMonday(date) {
+  const day = new Date(date);
+  const dayIndex = day.getDay() === 0 ? 7 : day.getDay();
+  day.setDate(day.getDate() - dayIndex + 1);
+  day.setHours(0, 0, 0, 0);
+  return day;
+}
+
+function parseDateKey(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 import { defaultState } from '../data/defaultData';

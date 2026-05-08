@@ -4,13 +4,19 @@ import {
   deleteTask,
   filterTasks,
   getDayName,
+  getCompletionRate,
+  getNextDateKey,
   getReviewForDate,
+  getSubjectSummary,
   getTaskSummary,
   getTasksForDate,
   getTodayKey,
   getTodayTimeline,
+  getWeekSchedule,
   getWeeklyCourses,
   groupTasksByTimeBlock,
+  cloneTaskForDate,
+  updateSettings,
   upsertTask,
 } from './learningData';
 import { loadLearningState, saveLearningState } from './storage';
@@ -136,6 +142,61 @@ describe('learning data helpers', () => {
 
     expect(getReviewForDate(state, '2026-05-08')).toMatchObject({ completed: '完成不错' });
     expect(getReviewForDate(state, '2026-05-09')).toBeNull();
+  });
+
+  it('calculates a completion rate rounded to whole percent', () => {
+    expect(getCompletionRate([{ status: 'done' }, { status: 'todo' }, { status: 'done' }])).toBe(67);
+    expect(getCompletionRate([])).toBe(0);
+  });
+
+  it('summarizes tasks by subject', () => {
+    const summary = getSubjectSummary([
+      { subject: '数学', status: 'done' },
+      { subject: '数学', status: 'todo' },
+      { subject: '英语', status: 'review' },
+    ]);
+
+    expect(summary).toEqual([
+      { subject: '数学', total: 2, completed: 1, pendingReview: 0 },
+      { subject: '英语', total: 1, completed: 0, pendingReview: 1 },
+    ]);
+  });
+
+  it('builds a seven day schedule from a Monday start', () => {
+    const state = {
+      ...createInitialState(),
+      tasks: [{ id: 't1', date: '2026-05-12', title: '周二任务', startTime: '09:00' }],
+      recurringCourses: [{ id: 'c1', weekday: '周三', title: '周三课程', startTime: '19:00' }],
+    };
+
+    const schedule = getWeekSchedule(state, new Date('2026-05-13T08:00:00'));
+
+    expect(schedule).toHaveLength(7);
+    expect(schedule[0]).toMatchObject({ dateKey: '2026-05-11', weekday: '周一' });
+    expect(schedule[1].items.map((item) => item.title)).toEqual(['周二任务']);
+    expect(schedule[2].items.map((item) => item.title)).toEqual(['周三课程']);
+  });
+
+  it('clones a task to another date as a new todo task', () => {
+    const state = {
+      ...createInitialState(),
+      tasks: [{ id: 'old', date: '2026-05-08', title: '复习单词', status: 'done', startTime: '20:00' }],
+    };
+
+    const cloned = cloneTaskForDate(state, 'old', '2026-05-09', 'new-id');
+
+    expect(cloned.tasks).toHaveLength(2);
+    expect(cloned.tasks[1]).toMatchObject({ id: 'new-id', date: '2026-05-09', title: '复习单词', status: 'todo' });
+  });
+
+  it('gets the next date key and updates settings', () => {
+    expect(getNextDateKey('2026-05-08')).toBe('2026-05-09');
+
+    const state = createInitialState();
+    const updated = updateSettings(state, { childName: '宁宁' });
+
+    expect(updated.settings.childName).toBe('宁宁');
+    expect(updated.tasks).toBe(state.tasks);
   });
 
   it('loads saved state from a storage adapter', () => {

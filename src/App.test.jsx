@@ -21,6 +21,8 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '日程安排' })).toBeInTheDocument();
     expect(screen.getByText('今日时间线')).toBeInTheDocument();
     expect(screen.getByText('本周固定课程')).toBeInTheDocument();
+    expect(screen.getByText('本周日历')).toBeInTheDocument();
+    expect(screen.getByText('科目完成概览')).toBeInTheDocument();
   });
 
   it('switches to daily tasks and adds a task', () => {
@@ -53,7 +55,36 @@ describe('App', () => {
 
     expect(screen.getAllByText('今天按计划完成了数学和英语。').length).toBeGreaterThanOrEqual(2);
   });
+
+  it('clones a task to tomorrow from the task row', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getAllByText('每日任务')[0]);
+    fireEvent.click(screen.getAllByLabelText('复制到明天')[0]);
+
+    fireEvent.change(screen.getByLabelText('日期'), { target: { value: nextDateKey() } });
+    expect(screen.getAllByText('数学口算 30 题').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('updates the child name in settings', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getAllByText('设置')[0]);
+    fireEvent.change(screen.getByLabelText('孩子姓名'), { target: { value: '宁宁' } });
+    fireEvent.click(screen.getByRole('button', { name: /保存设置/ }));
+
+    expect(screen.getAllByText(/宁宁 的学习节奏/).length).toBeGreaterThanOrEqual(1);
+  });
 });
+
+function nextDateKey() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 class MemoryStorage {
   constructor() {
