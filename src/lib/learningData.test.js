@@ -5,6 +5,7 @@ import {
   filterTasks,
   getDayName,
   getCompletionRate,
+  getCoursesForDate,
   getHealthTrendPoints,
   getLatestHealthRecord,
   getNextDateKey,
@@ -15,14 +16,17 @@ import {
   getTasksForDate,
   getTodayKey,
   getTodayTimeline,
+  getTotalLearningPoints,
   getWeekSchedule,
   getWeeklyCourses,
   groupTasksByTimeBlock,
   cloneTaskForDate,
   upsertHealthRecord,
   upsertWorkout,
+  redeemReward,
   updateSettings,
   upsertTask,
+  upsertRewardItem,
 } from './learningData';
 import { loadLearningState, saveLearningState } from './storage';
 
@@ -75,6 +79,18 @@ describe('learning data helpers', () => {
       '英语辅导班',
       '英语阅读',
     ]);
+  });
+
+  it('returns fixed courses for a target date', () => {
+    const state = {
+      ...createInitialState(),
+      recurringCourses: [
+        { id: 'c1', title: '周五课程', weekday: '周五', startTime: '18:30' },
+        { id: 'c2', title: '周六课程', weekday: '周六', startTime: '10:00' },
+      ],
+    };
+
+    expect(getCoursesForDate(state, new Date('2026-05-08T08:00:00')).map((course) => course.title)).toEqual(['周五课程']);
   });
 
   it('updates a target task without losing other tasks', () => {
@@ -260,6 +276,31 @@ describe('learning data helpers', () => {
     const updated = upsertWorkout(state, { id: 'w1', date: '2026-05-08', type: '篮球', duration: 45, intensity: 'medium' });
 
     expect(updated.workouts[0]).toMatchObject({ type: '篮球', points: 45 });
+  });
+
+  it('calculates task level points and reward redemption balance', () => {
+    const state = {
+      ...createInitialState(),
+      tasks: [
+        { id: 't1', status: 'done', priority: '高', completionLevel: 'excellent' },
+        { id: 't2', status: 'done', priority: '中', completionLevel: 'standard' },
+        { id: 't3', status: 'todo', priority: '高', completionLevel: 'excellent' },
+      ],
+      workouts: [],
+      pointLedger: [],
+    };
+
+    expect(getTotalLearningPoints(state)).toBe(37);
+  });
+
+  it('adds reward items and subtracts points when redeemed', () => {
+    const state = { ...createInitialState(), tasks: [], workouts: [], rewardItems: [], pointLedger: [{ id: 'bonus', type: 'bonus', points: 50, note: '家长奖励' }] };
+    const withReward = upsertRewardItem(state, { id: 'r1', title: '周末电影', cost: 30 });
+    const redeemed = redeemReward(withReward, 'r1', 'ledger-1');
+
+    expect(withReward.rewardItems[0]).toMatchObject({ title: '周末电影', cost: 30 });
+    expect(redeemed.pointLedger).toContainEqual(expect.objectContaining({ id: 'ledger-1', type: 'redeem', points: -30, rewardTitle: '周末电影' }));
+    expect(getTotalLearningPoints(redeemed)).toBe(20);
   });
 
   it('loads saved state from a storage adapter', () => {

@@ -62,21 +62,22 @@ export function getSubjectSummary(tasks) {
 
 export function getTodayTimeline(state, date = new Date()) {
   const dateKey = getTodayKey(date);
-  const weekday = getDayName(date);
   const taskItems = getTasksForDate(state, dateKey).map((task) => ({
     ...task,
     type: 'task',
     time: task.startTime || blockDefaultTime(task.timeBlock),
   }));
-  const courseItems = state.recurringCourses
-    .filter((course) => course.weekday === weekday)
-    .map((course) => ({
-      ...course,
-      type: 'course',
-      time: course.startTime,
-    }));
+  const courseItems = getCoursesForDate(state, date);
 
   return [...taskItems, ...courseItems].sort(compareByTime);
+}
+
+export function getCoursesForDate(state, date = new Date()) {
+  const weekday = getDayName(date);
+  return [...(state.recurringCourses || [])]
+    .filter((course) => course.weekday === weekday)
+    .map((course) => ({ ...course, type: 'course', time: course.startTime }))
+    .sort(compareByTime);
 }
 
 export function getWeekSchedule(state, date = new Date()) {
@@ -91,9 +92,7 @@ export function getWeekSchedule(state, date = new Date()) {
       type: 'task',
       time: task.startTime || blockDefaultTime(task.timeBlock),
     }));
-    const courses = state.recurringCourses
-      .filter((course) => course.weekday === weekday)
-      .map((course) => ({ ...course, type: 'course', time: course.startTime }));
+    const courses = getCoursesForDate(state, day);
 
     return {
       dateKey,
@@ -263,6 +262,61 @@ export function getTotalWorkoutPoints(state) {
   return (state.workouts || []).reduce((sum, workout) => sum + (Number(workout.points) || 0), 0);
 }
 
+export function getTaskEarnedPoints(task) {
+  if (task.status !== 'done') return 0;
+  const levelPoints = { standard: 10, good: 15, excellent: 20 }[task.completionLevel || 'standard'] || 10;
+  const priorityBonus = { 高: 5, 中: 2, 低: 0 }[task.priority] || 0;
+  return levelPoints + priorityBonus;
+}
+
+export function getTotalLearningPoints(state) {
+  const taskPoints = (state.tasks || []).reduce((sum, task) => sum + getTaskEarnedPoints(task), 0);
+  const workoutPoints = getTotalWorkoutPoints(state);
+  const ledgerPoints = (state.pointLedger || []).reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+  return taskPoints + workoutPoints + ledgerPoints;
+}
+
+export function upsertRewardItem(state, reward) {
+  const nextReward = {
+    ...reward,
+    cost: Number(reward.cost) || 0,
+  };
+  const exists = (state.rewardItems || []).some((item) => item.id === nextReward.id);
+  return {
+    ...state,
+    rewardItems: exists
+      ? state.rewardItems.map((item) => (item.id === nextReward.id ? nextReward : item))
+      : [...(state.rewardItems || []), nextReward],
+  };
+}
+
+export function deleteRewardItem(state, rewardId) {
+  return {
+    ...state,
+    rewardItems: (state.rewardItems || []).filter((reward) => reward.id !== rewardId),
+  };
+}
+
+export function redeemReward(state, rewardId, ledgerId, dateKey = getTodayKey(new Date())) {
+  const reward = (state.rewardItems || []).find((item) => item.id === rewardId);
+  if (!reward) return state;
+  const cost = Number(reward.cost) || 0;
+  if (getTotalLearningPoints(state) < cost) return state;
+  return {
+    ...state,
+    pointLedger: [
+      ...(state.pointLedger || []),
+      {
+        id: ledgerId,
+        type: 'redeem',
+        points: -cost,
+        rewardTitle: reward.title,
+        date: dateKey,
+      },
+    ],
+  };
+}
+
 export function getNextDateKey(dateKey) {
   const date = parseDateKey(dateKey);
   date.setDate(date.getDate() + 1);
@@ -299,6 +353,8 @@ function fallbackDefaultState() {
     reviews: [],
     healthRecords: [],
     workouts: [],
+    rewardItems: [],
+    pointLedger: [],
   };
 }
 

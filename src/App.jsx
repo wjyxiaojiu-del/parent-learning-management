@@ -28,6 +28,8 @@ import {
   deleteWorkout,
   filterTasks,
   getCompletionRate,
+  getCoursesForDate,
+  getDayName,
   getHealthTrendPoints,
   getLatestHealthRecord,
   getNutritionEstimate,
@@ -38,11 +40,16 @@ import {
   getTasksForDate,
   getTodayKey,
   getTodayTimeline,
+  getTaskEarnedPoints,
+  getTotalLearningPoints,
   getWeekSchedule,
   getWeeklyCourses,
   groupTasksByTimeBlock,
   getTotalWorkoutPoints,
+  deleteRewardItem,
+  redeemReward,
   upsertHealthRecord,
+  upsertRewardItem,
   upsertWorkout,
   updateSettings,
   upsertRecurringCourse,
@@ -57,6 +64,7 @@ const navItems = [
   { id: 'courses', label: '固定课程', icon: CalendarDays },
   { id: 'reviews', label: '每日复盘', icon: FileText },
   { id: 'health', label: '身体运动', icon: HeartPulse },
+  { id: 'rewards', label: '积分奖励', icon: Trophy },
   { id: 'settings', label: '设置', icon: Settings },
 ];
 
@@ -93,6 +101,12 @@ const activityLabels = {
   high: '高活动量',
 };
 
+const completionLevelLabels = {
+  standard: '达标',
+  good: '良好',
+  excellent: '优秀',
+};
+
 const emptyTask = {
   title: '',
   subject: '数学',
@@ -101,6 +115,7 @@ const emptyTask = {
   timeBlock: 'morning',
   startTime: '08:30',
   duration: 30,
+  completionLevel: 'standard',
   note: '',
 };
 
@@ -125,6 +140,12 @@ const emptyWorkout = {
   type: '',
   duration: 30,
   intensity: 'medium',
+  note: '',
+};
+
+const emptyReward = {
+  title: '',
+  cost: 20,
   note: '',
 };
 
@@ -174,7 +195,7 @@ export default function App() {
 
         <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {activePage === 'schedule' && (
-            <SchedulePage state={state} summary={summary} todayTasks={todayTasks} onNavigate={setActivePage} />
+            <SchedulePage state={state} summary={summary} todayTasks={todayTasks} onNavigate={setActivePage} onStateChange={setState} />
           )}
           {activePage === 'tasks' && (
             <TasksPage
@@ -199,6 +220,7 @@ export default function App() {
             />
           )}
           {activePage === 'health' && <HealthPage state={state} onStateChange={setState} />}
+          {activePage === 'rewards' && <RewardsPage state={state} onStateChange={setState} />}
           {activePage === 'settings' && <SettingsPage state={state} onStateChange={setState} />}
         </main>
       </div>
@@ -231,17 +253,39 @@ function NavButton({ item, active, onClick }) {
   );
 }
 
-function SchedulePage({ state, summary, todayTasks, onNavigate }) {
-  const timeline = getTodayTimeline(state, new Date());
+function SchedulePage({ state, summary, todayTasks, onNavigate, onStateChange }) {
+  const today = new Date();
+  const todayKey = getTodayKey(today);
+  const todayLabel = getDayName(today);
+  const timeline = getTodayTimeline(state, today);
+  const todayCourses = getCoursesForDate(state, today);
   const weeklyCourses = getWeeklyCourses(state);
-  const weekSchedule = getWeekSchedule(state, new Date());
+  const weekSchedule = getWeekSchedule(state, today);
   const subjectSummary = getSubjectSummary(todayTasks);
   const completionRate = getCompletionRate(todayTasks);
-  const hasReview = Boolean(getReviewForDate(state, getTodayKey(new Date())));
+  const hasReview = Boolean(getReviewForDate(state, todayKey));
+
+  function createTemporaryTask(course) {
+    onStateChange((current) =>
+      upsertTask(current, {
+        id: crypto.randomUUID(),
+        date: todayKey,
+        title: `${course.title}（临时调整）`,
+        subject: course.subject,
+        status: 'todo',
+        priority: '高',
+        timeBlock: 'night',
+        startTime: course.startTime,
+        duration: 60,
+        completionLevel: 'standard',
+        note: `${course.weekday}固定课程临时调整：${course.location || '地点待确认'}`,
+      }),
+    );
+  }
 
   return (
     <section className="space-y-6">
-      <PageTitle title="日程安排" subtitle="先看今天怎么排，再看本周固定课表。" />
+      <PageTitle title="日程安排" subtitle={`今天是 ${todayLabel} · ${todayKey}，先看固定课，再看每日任务。`} />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Metric label="今日任务" value={summary.total} />
@@ -249,6 +293,20 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
         <Metric label="未完成" value={summary.incomplete} tone="amber" />
         <Metric label="完成率" value={`${completionRate}%`} tone="blue" />
       </div>
+
+      <Panel title="今日固定课程" action={<CalendarDays size={18} />}>
+        <div className="course-strip">
+          {todayCourses.map((course) => (
+            <div key={course.id} className="course-strip-item">
+              <span>{course.weekday}</span>
+              <strong>{course.title}</strong>
+              <p>{course.startTime}-{course.endTime} · {course.subject} · {course.location || '地点待确认'}</p>
+              <button className="tiny-button" type="button" onClick={() => createTemporaryTask(course)}>临时调整</button>
+            </div>
+          ))}
+          {todayCourses.length === 0 && <p className="text-sm text-slate-400">今天没有固定课程。</p>}
+        </div>
+      </Panel>
 
       <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
         <Panel title="今日时间线" action={<Clock3 size={18} />}>
@@ -386,6 +444,7 @@ function TasksPage({ state, date, filters, tasks, onDateChange, onFiltersChange,
             <Input label="开始时间" type="time" value={form.startTime} onChange={(value) => setForm({ ...form, startTime: value })} />
             <Input label="预计分钟" type="number" value={form.duration} onChange={(value) => setForm({ ...form, duration: value })} />
             <Select label="优先级" value={form.priority} onChange={(value) => setForm({ ...form, priority: value })} options={['高', '中', '低']} />
+            <Select label="完成等级" value={form.completionLevel} onChange={(value) => setForm({ ...form, completionLevel: value })} options={Object.keys(completionLevelLabels)} labels={completionLevelLabels} />
             <Textarea label="备注" value={form.note} onChange={(value) => setForm({ ...form, note: value })} />
             <button className="primary-button" type="submit"><Plus size={18} />保存任务</button>
           </form>
@@ -405,6 +464,7 @@ function TasksPage({ state, date, filters, tasks, onDateChange, onFiltersChange,
               onDelete={(id) => onStateChange((current) => deleteTask(current, id))}
               onClone={(id) => onStateChange((current) => cloneTaskForDate(current, id, getNextDateKey(date), crypto.randomUUID()))}
               onStatus={(task, status) => onStateChange((current) => upsertTask(current, { ...task, status }))}
+              onLevel={(task, completionLevel) => onStateChange((current) => upsertTask(current, { ...task, completionLevel }))}
             />
           ))}
         </div>
@@ -606,6 +666,78 @@ function HealthPage({ state, onStateChange }) {
   );
 }
 
+function RewardsPage({ state, onStateChange }) {
+  const [form, setForm] = useState(emptyReward);
+  const totalPoints = getTotalLearningPoints(state);
+  const rewards = state.rewardItems || [];
+  const ledger = state.pointLedger || [];
+
+  function submitReward(event) {
+    event.preventDefault();
+    if (!form.title.trim()) return;
+    onStateChange((current) => upsertRewardItem(current, { ...form, id: form.id || crypto.randomUUID() }));
+    setForm(emptyReward);
+  }
+
+  return (
+    <section className="space-y-6">
+      <PageTitle title="积分奖励" subtitle="完成任务和运动攒积分，奖励内容由家长自己设置。" />
+      <div className="grid gap-4 md:grid-cols-3">
+        <Metric label="当前积分" value={totalPoints} tone="amber" />
+        <Metric label="任务优秀" value="+20" tone="green" />
+        <Metric label="任务达标" value="+10" tone="blue" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+        <Panel title={form.id ? '编辑奖励' : '新增奖励'} action={<Trophy size={18} />}>
+          <form className="form-grid" onSubmit={submitReward}>
+            <Input label="奖励名称" value={form.title} onChange={(value) => setForm({ ...form, title: value })} />
+            <Input label="所需积分" type="number" value={form.cost} onChange={(value) => setForm({ ...form, cost: value })} />
+            <Textarea label="兑换说明" value={form.note} onChange={(value) => setForm({ ...form, note: value })} />
+            <button className="primary-button" type="submit"><Plus size={18} />保存奖励</button>
+          </form>
+        </Panel>
+
+        <Panel title="可兑换奖励" action={<Trophy size={18} />}>
+          <div className="space-y-3">
+            {rewards.map((reward) => (
+              <div key={reward.id} className="management-row">
+                <div>
+                  <p className="font-semibold">{reward.title}</p>
+                  <p className="text-sm text-slate-500">{reward.cost} 积分 · {reward.note || '由家长确认兑换'}</p>
+                </div>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <button className="secondary-button" type="button" onClick={() => onStateChange((current) => redeemReward(current, reward.id, crypto.randomUUID()))}>
+                    兑换{reward.title}
+                  </button>
+                  <RowActions onEdit={() => setForm(reward)} onDelete={() => onStateChange((current) => deleteRewardItem(current, reward.id))} />
+                </div>
+              </div>
+            ))}
+            {rewards.length === 0 && <p className="text-sm text-slate-400">还没有设置奖励。</p>}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title="积分记录" action={<ClipboardCheck size={18} />}>
+        <div className="space-y-2">
+          <p className="text-sm text-slate-500">任务积分按完成等级自动计算：达标 10 分，良好 15 分，优秀 20 分，高优先级额外 5 分。</p>
+          {ledger.filter((entry) => entry.type === 'redeem').map((entry) => (
+            <div key={entry.id} className="summary-row">
+              <Trophy size={18} className="text-[#ff6b00]" />
+              <div>
+                <p className="font-medium">已兑换：{entry.rewardTitle}</p>
+                <p className="text-sm text-slate-500">{entry.date} · {entry.points} 积分</p>
+              </div>
+            </div>
+          ))}
+          {ledger.filter((entry) => entry.type === 'redeem').length === 0 && <p className="text-sm text-slate-400">还没有兑换记录。</p>}
+        </div>
+      </Panel>
+    </section>
+  );
+}
+
 function SettingsPage({ state, onStateChange }) {
   const [form, setForm] = useState(() => normalizeSettings(state.settings));
 
@@ -646,7 +778,7 @@ function SettingsPage({ state, onStateChange }) {
   );
 }
 
-function TaskGroup({ title, tasks, onEdit, onDelete, onClone, onStatus }) {
+function TaskGroup({ title, tasks, onEdit, onDelete, onClone, onStatus, onLevel }) {
   return (
     <Panel title={`${title} · ${tasks.length} 项`}>
       <div className="space-y-3">
@@ -660,10 +792,14 @@ function TaskGroup({ title, tasks, onEdit, onDelete, onClone, onStatus }) {
                 <span className="tag">{task.priority}</span>
               </div>
               <p className="mt-1 text-sm text-slate-500">{task.startTime} · {task.duration} 分钟 · {task.note || '无备注'}</p>
+              {task.status === 'done' && <p className="mt-1 text-xs text-[#ff6b00]">本任务 +{getTaskEarnedPoints(task)} 积分</p>}
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2">
               <select className="small-select" value={task.status} onChange={(event) => onStatus(task, event.target.value)}>
                 {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <select className="small-select" value={task.completionLevel || 'standard'} onChange={(event) => onLevel(task, event.target.value)} aria-label="完成等级">
+                {Object.entries(completionLevelLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
               <button className="icon-button" onClick={() => onClone(task.id)} type="button" aria-label="复制到明天"><Copy size={16} /></button>
               <RowActions onEdit={() => onEdit(task)} onDelete={() => onDelete(task.id)} />
@@ -797,6 +933,13 @@ function normalizeSettings(settings = {}) {
     activityLevel: 'moderate',
     subjects: ['语文', '数学', '英语'],
     ...settings,
+  };
+}
+
+function normalizeReward(reward = {}) {
+  return {
+    ...emptyReward,
+    ...reward,
   };
 }
 

@@ -19,6 +19,8 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: '日程安排' })).toBeInTheDocument();
+    expect(screen.getByText(/今天是/)).toBeInTheDocument();
+    expect(screen.getByText('今日固定课程')).toBeInTheDocument();
     expect(screen.getByText('今日时间线')).toBeInTheDocument();
     expect(screen.getByText('本周固定课程')).toBeInTheDocument();
     expect(screen.getByText('本周日历')).toBeInTheDocument();
@@ -93,6 +95,27 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /保存设置/ }));
 
     expect(screen.getAllByText(/宁宁 的学习节奏/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('creates a temporary task from a fixed course change', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /临时调整/ }));
+    fireEvent.click(screen.getAllByText('每日任务')[0]);
+
+    expect(screen.getAllByText(/临时调整/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('redeems a parent configured reward with points', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getAllByText('积分奖励')[0]);
+    fireEvent.change(screen.getByLabelText('奖励名称'), { target: { value: '周末电影' } });
+    fireEvent.change(screen.getByLabelText('所需积分'), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: /保存奖励/ }));
+    fireEvent.click(screen.getByRole('button', { name: /兑换周末电影/ }));
+
+    expect(screen.getByText(/已兑换：周末电影/)).toBeInTheDocument();
   });
 });
 

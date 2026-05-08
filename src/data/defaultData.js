@@ -1,4 +1,5 @@
 const today = getDateKey(new Date());
+const todayWeekday = getWeekday(new Date());
 
 export const defaultState = {
   settings: {
@@ -19,6 +20,7 @@ export const defaultState = {
       timeBlock: 'morning',
       startTime: '08:20',
       duration: 25,
+      completionLevel: 'standard',
       note: '重点观察正确率和速度。',
     },
     {
@@ -31,6 +33,7 @@ export const defaultState = {
       timeBlock: 'afternoon',
       startTime: '16:30',
       duration: 35,
+      completionLevel: 'standard',
       note: '读完后口头复述主要内容。',
     },
     {
@@ -43,10 +46,21 @@ export const defaultState = {
       timeBlock: 'night',
       startTime: '20:30',
       duration: 30,
+      completionLevel: 'good',
       note: '只整理高频错误，不追求数量。',
     },
   ],
   recurringCourses: [
+    {
+      id: 'course-today',
+      title: '当天固定辅导课',
+      subject: '综合',
+      weekday: todayWeekday,
+      startTime: '18:30',
+      endTime: '19:30',
+      location: '待确认',
+      note: '用于主页展示当天固定安排。',
+    },
     {
       id: 'course-math-tue',
       title: '数学思维课',
@@ -95,6 +109,11 @@ export const defaultState = {
       points: 25,
     },
   ],
+  rewardItems: [
+    { id: 'reward-reading', title: '周末自由阅读 30 分钟', cost: 20, note: '由家长确认兑换时间。' },
+    { id: 'reward-movie', title: '家庭电影时间', cost: 60, note: '完成一周计划后优先兑换。' },
+  ],
+  pointLedger: [],
 };
 
 function getDateKey(date) {
@@ -109,4 +128,8 @@ function addDays(dateKey, diff) {
   const date = new Date(year, month - 1, day);
   date.setDate(date.getDate() + diff);
   return getDateKey(date);
+}
+
+function getWeekday(date) {
+  return ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()];
 }
