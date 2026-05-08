@@ -100,7 +100,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#faf5ef] text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-sky-300/30 bg-[#68b9ea] px-4 py-5 shadow-xl shadow-sky-900/10 lg:block">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 border-r border-sky-300/30 bg-[#68b9ea] px-4 py-5 shadow-xl shadow-sky-900/10 lg:block">
         <Brand childName={state.settings.childName} inverse />
         <nav className="mt-8 space-y-2">
           {navItems.map((item) => (
@@ -109,7 +109,7 @@ export default function App() {
         </nav>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="lg:pl-60">
         <header className="sticky top-0 z-10 border-b border-orange-100 bg-[#faf5ef]/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
           <Brand childName={state.settings.childName} compact />
           <div className="mt-3 grid grid-cols-5 gap-2">
@@ -126,7 +126,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {activePage === 'schedule' && (
             <SchedulePage state={state} summary={summary} todayTasks={todayTasks} onNavigate={setActivePage} />
           )}
@@ -193,7 +193,15 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
   return (
     <section className="space-y-6">
       <PageTitle title="日程安排" subtitle="先看今天怎么排，再看本周固定课表。" />
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Metric label="今日任务" value={summary.total} />
+        <Metric label="已完成" value={summary.completed} tone="green" />
+        <Metric label="未完成" value={summary.incomplete} tone="amber" />
+        <Metric label="完成率" value={`${completionRate}%`} tone="blue" />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
         <Panel title="今日时间线" action={<Clock3 size={18} />}>
           <div className="space-y-3">
             {timeline.map((item) => (
@@ -210,56 +218,6 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
           </div>
         </Panel>
 
-        <Panel title="本周固定课程" action={<CalendarDays size={18} />}>
-          <div className="space-y-3">
-            {weeklyCourses.map((course) => (
-              <div key={course.id} className="course-row">
-                <div>
-                  <p className="font-medium">{course.title}</p>
-                  <p className="text-sm text-slate-500">{course.subject} · {course.location || '未填写地点'}</p>
-                </div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-                  {course.weekday} {course.startTime}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="今日任务" value={summary.total} />
-        <Metric label="已完成" value={summary.completed} tone="green" />
-        <Metric label="未完成" value={summary.incomplete} tone="amber" />
-        <Metric label="完成率" value={`${completionRate}%`} tone="blue" />
-      </div>
-
-      <Panel title="本周日历" action={<CalendarDays size={18} />}>
-        <div className="week-grid">
-          {weekSchedule.map((day) => (
-            <div key={day.dateKey} className="week-day">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{day.weekday}</p>
-                  <p className="text-xs text-slate-400">{day.dayLabel}</p>
-                </div>
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{day.items.length}</span>
-              </div>
-              <div className="space-y-2">
-                {day.items.slice(0, 3).map((item) => (
-                  <div key={`${day.dateKey}-${item.type}-${item.id}`} className={`mini-event mini-event-${item.type}`}>
-                    <span>{item.time}</span>
-                    <p>{item.title}</p>
-                  </div>
-                ))}
-                {day.items.length === 0 && <p className="text-xs text-slate-400">暂无安排</p>}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Panel>
-
-      <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="今日任务摘要" action={<ClipboardCheck size={18} />}>
           <div className="space-y-3">
             {todayTasks.map((task) => (
@@ -271,10 +229,53 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
                 </div>
               </div>
             ))}
+            <div className="reminder-stack">
+              <Reminder active={!hasReview} text={hasReview ? '今日复盘已记录' : '今天还需要填写复盘'} />
+              <Reminder active={summary.incomplete > 0} text={`${summary.incomplete} 个任务仍未完成`} />
+            </div>
             <button className="primary-button w-full" onClick={() => onNavigate('tasks')}>
               <ListChecks size={18} />
               进入每日任务
             </button>
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title="本周固定课程" action={<CalendarDays size={18} />}>
+        <div className="course-strip">
+          {weeklyCourses.map((course) => (
+            <div key={course.id} className="course-strip-item">
+              <span>{course.weekday}</span>
+              <strong>{course.title}</strong>
+              <p>{course.startTime}-{course.endTime} · {course.subject}</p>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <div className="secondary-grid">
+        <Panel title="本周日历" action={<CalendarDays size={18} />}>
+          <div className="week-grid">
+            {weekSchedule.map((day) => (
+              <div key={day.dateKey} className="week-day">
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{day.weekday}</p>
+                    <p className="text-xs text-slate-400">{day.dayLabel}</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{day.items.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {day.items.slice(0, 2).map((item) => (
+                    <div key={`${day.dateKey}-${item.type}-${item.id}`} className={`mini-event mini-event-${item.type}`}>
+                      <span>{item.time}</span>
+                      <p>{item.title}</p>
+                    </div>
+                  ))}
+                  {day.items.length === 0 && <p className="text-xs text-slate-400">暂无安排</p>}
+                </div>
+              </div>
+            ))}
           </div>
         </Panel>
 
@@ -299,14 +300,6 @@ function SchedulePage({ state, summary, todayTasks, onNavigate }) {
           </div>
         </Panel>
       </div>
-
-      <Panel title="待处理提醒" action={<RotateCcw size={18} />}>
-          <div className="space-y-3">
-            <Reminder active={!hasReview} text={hasReview ? '今日复盘已记录' : '今天还需要填写复盘'} />
-            <Reminder active={summary.incomplete > 0} text={`${summary.incomplete} 个任务仍未完成`} />
-            <Reminder active={summary.pendingReview > 0} text={`${summary.pendingReview} 个任务需要复盘`} />
-          </div>
-      </Panel>
     </section>
   );
 }
