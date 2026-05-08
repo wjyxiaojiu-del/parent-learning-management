@@ -6,11 +6,23 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: #fdfbf7;
+  overscroll-behavior-x: none;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #faf5ef;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Inter, sans-serif;
+  background: #fdfbf7;
+  overscroll-behavior-x: none;
 }
 
 button,
@@ -22,7 +34,7 @@ textarea {
 
 @layer components {
   .brand-mark {
-    @apply flex h-11 w-11 items-center justify-center rounded-xl bg-[#ff6b00] text-white shadow-lg shadow-orange-900/20;
+    @apply flex h-11 w-11 items-center justify-center rounded-xl bg-[#ff9f1c] text-white shadow-lg shadow-orange-900/20;
   }
 
   .nav-button {
@@ -34,15 +46,20 @@ textarea {
   }
 
   .mobile-tab {
-    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg bg-white/75 px-1 text-[11px] font-semibold text-[#8ba3c9] shadow-sm;
+    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold text-slate-400 transition;
   }
 
   .mobile-tab-active {
-    @apply bg-[#68b9ea] text-white shadow-md shadow-sky-900/10;
+    @apply bg-[#fff3e1] text-[#ff9f1c] shadow-md shadow-orange-900/10;
+  }
+
+  .mobile-nav {
+    @apply fixed inset-x-3 bottom-3 z-30 grid grid-cols-7 gap-1 rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-2xl shadow-slate-900/10 backdrop-blur lg:hidden;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 
   .page-hero {
-    @apply flex flex-col justify-between gap-4 rounded-lg border border-orange-100 bg-white/75 px-5 py-5 shadow-soft backdrop-blur sm:flex-row sm:items-center;
+    @apply flex flex-col justify-between gap-4 rounded-2xl border border-orange-100 bg-white/80 px-5 py-5 shadow-soft backdrop-blur sm:flex-row sm:items-center;
   }
 
   .hero-date {
@@ -50,15 +67,15 @@ textarea {
   }
 
   .panel {
-    @apply rounded-lg border border-orange-100 bg-white/80 p-5 shadow-soft backdrop-blur;
+    @apply rounded-2xl border border-orange-100 bg-white/80 p-5 shadow-soft backdrop-blur;
   }
 
   .panel-icon {
-    @apply flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 text-[#ff6b00] shadow-sm shadow-orange-900/5;
+    @apply flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-[#ff9f1c] shadow-sm shadow-orange-900/5;
   }
 
   .metric-card {
-    @apply rounded-lg border border-orange-100 bg-white/80 p-4 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:shadow-lg;
+    @apply rounded-2xl border border-orange-100 bg-white/80 p-4 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:shadow-lg;
   }
 
   .timeline-item,
@@ -66,7 +83,7 @@ textarea {
   .course-row,
   .management-row,
   .task-row {
-    @apply flex items-center justify-between gap-4 rounded-lg border border-orange-100 bg-white/90 px-4 py-3 transition hover:border-orange-200 hover:bg-white;
+    @apply flex items-center justify-between gap-4 rounded-2xl border border-orange-100 bg-white/90 px-4 py-3 transition hover:border-orange-200 hover:bg-white;
   }
 
   .task-row {
@@ -74,15 +91,15 @@ textarea {
   }
 
   .time-pill {
-    @apply shrink-0 rounded-md bg-[#ff6b00] px-3 py-1 text-sm font-semibold text-white shadow-sm shadow-orange-900/10;
+    @apply shrink-0 rounded-lg bg-[#ff9f1c] px-3 py-1 text-sm font-semibold text-white shadow-sm shadow-orange-900/10;
   }
 
   .primary-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#ff6b00] px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-orange-900/15 transition hover:bg-[#f05f00];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff9f1c] px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-orange-900/15 transition hover:bg-[#f3920b];
   }
 
   .secondary-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-orange-100 bg-white px-3 py-2 text-sm font-semibold text-[#ff6b00] transition hover:border-orange-200 hover:bg-orange-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-orange-100 bg-white px-3 py-2 text-sm font-semibold text-[#ff9f1c] transition hover:border-orange-200 hover:bg-orange-50;
   }
 
   .tiny-button {
@@ -98,7 +115,7 @@ textarea {
   }
 
   .course-strip-item {
-    @apply rounded-lg border border-orange-100 bg-[#fffaf5] px-4 py-3;
+    @apply rounded-2xl border border-orange-100 bg-[#fffaf5] px-4 py-3;
   }
 
   .course-strip-item span {
@@ -126,7 +143,35 @@ textarea {
   }
 
   .week-day {
-    @apply min-h-36 rounded-lg border border-orange-100 bg-[#fffaf5] p-3 transition hover:border-orange-200 hover:bg-white;
+    @apply min-h-36 rounded-2xl border border-orange-100 bg-[#fffaf5] p-3 transition hover:border-orange-200 hover:bg-white;
+  }
+
+  .assistant-strip {
+    @apply flex items-center gap-3 rounded-2xl border border-orange-100 bg-white/90 px-4 py-3 shadow-soft backdrop-blur;
+  }
+
+  .assistant-dots {
+    @apply flex shrink-0 items-center gap-1.5;
+  }
+
+  .assistant-dots span {
+    @apply block h-3.5 w-3.5 rounded-full;
+  }
+
+  .assistant-dots span:nth-child(1) {
+    @apply bg-[#ff9f1c] shadow-sm shadow-orange-300;
+  }
+
+  .assistant-dots span:nth-child(2) {
+    @apply bg-[#ff6b9d] shadow-sm shadow-pink-300;
+  }
+
+  .assistant-dots span:nth-child(3) {
+    @apply bg-[#4ecdc4] shadow-sm shadow-teal-300;
+  }
+
+  .assistant-points {
+    @apply ml-auto shrink-0 rounded-full bg-[#fff3e1] px-3 py-1.5 text-sm font-bold text-[#ff9f1c] ring-1 ring-orange-100;
   }
 
   .mini-event {

@@ -166,7 +166,7 @@ export default function App() {
   const summary = getTaskSummary(todayTasks);
 
   return (
-    <div className="min-h-screen bg-[#faf5ef] text-slate-900">
+    <div className="min-h-screen bg-[#fdfbf7] text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 border-r border-sky-300/30 bg-[#68b9ea] px-4 py-5 shadow-xl shadow-sky-900/10 lg:block">
         <Brand childName={state.settings.childName} inverse />
         <nav className="mt-8 space-y-2">
@@ -177,23 +177,11 @@ export default function App() {
       </aside>
 
       <div className="lg:pl-60">
-        <header className="sticky top-0 z-10 border-b border-orange-100 bg-[#faf5ef]/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-10 border-b border-orange-100 bg-[#fdfbf7]/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
           <Brand childName={state.settings.childName} compact />
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                className={`mobile-tab ${activePage === item.id ? 'mobile-tab-active' : ''}`}
-                onClick={() => setActivePage(item.id)}
-              >
-                <item.icon size={17} />
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:py-8">
           {activePage === 'schedule' && (
             <SchedulePage state={state} summary={summary} todayTasks={todayTasks} onNavigate={setActivePage} onStateChange={setState} />
           )}
@@ -224,6 +212,7 @@ export default function App() {
           {activePage === 'settings' && <SettingsPage state={state} onStateChange={setState} />}
         </main>
       </div>
+      <MobileNav activePage={activePage} onNavigate={setActivePage} />
       {feedback && <PraiseToast message={feedback} onClose={() => setFeedback('')} />}
     </div>
   );
@@ -253,6 +242,24 @@ function NavButton({ item, active, onClick }) {
   );
 }
 
+function MobileNav({ activePage, onNavigate }) {
+  return (
+    <nav className="mobile-nav" aria-label="移动端导航">
+      {navItems.map((item) => (
+        <button
+          key={item.id}
+          className={`mobile-tab ${activePage === item.id ? 'mobile-tab-active' : ''}`}
+          onClick={() => onNavigate(item.id)}
+          type="button"
+        >
+          <item.icon size={18} />
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 function SchedulePage({ state, summary, todayTasks, onNavigate, onStateChange }) {
   const today = new Date();
   const todayKey = getTodayKey(today);
@@ -264,6 +271,7 @@ function SchedulePage({ state, summary, todayTasks, onNavigate, onStateChange })
   const subjectSummary = getSubjectSummary(todayTasks);
   const completionRate = getCompletionRate(todayTasks);
   const hasReview = Boolean(getReviewForDate(state, todayKey));
+  const totalPoints = getTotalLearningPoints(state);
 
   function createTemporaryTask(course) {
     onStateChange((current) =>
@@ -286,6 +294,13 @@ function SchedulePage({ state, summary, todayTasks, onNavigate, onStateChange })
   return (
     <section className="space-y-6">
       <PageTitle title="日程安排" subtitle={`今天是 ${todayLabel} · ${todayKey}，先看固定课，再看每日任务。`} />
+      <AssistantStrip
+        childName={state.settings.childName}
+        todayLabel={todayLabel}
+        completionRate={completionRate}
+        totalPoints={totalPoints}
+        openTasks={summary.incomplete}
+      />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Metric label="今日任务" value={summary.total} />
@@ -408,6 +423,23 @@ function SchedulePage({ state, summary, todayTasks, onNavigate, onStateChange })
         </Panel>
       </div>
     </section>
+  );
+}
+
+function AssistantStrip({ childName, todayLabel, completionRate, totalPoints, openTasks }) {
+  return (
+    <div className="assistant-strip">
+      <div className="assistant-dots" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-slate-950">{childName} 的今日小助手</p>
+        <p className="truncate text-xs text-slate-500">{todayLabel} · 完成率 {completionRate}% · {openTasks} 项待推进</p>
+      </div>
+      <div className="assistant-points">{totalPoints} 分</div>
+    </div>
   );
 }
 
