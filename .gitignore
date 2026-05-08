@@ -1,6 +1,12 @@
+.superpowers/
+.worktrees/
 node_modules/
 miniprogram_npm/
 cloudfunctions/**/node_modules/
+dist/
+coverage/
 .DS_Store
 *.log
+.env
+.env.local
 project.private.config.json
