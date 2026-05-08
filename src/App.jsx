@@ -99,8 +99,8 @@ export default function App() {
   const summary = getTaskSummary(todayTasks);
 
   return (
-    <div className="min-h-screen bg-[#f3f6fb] text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-800 bg-[#111827] px-4 py-5 shadow-2xl lg:block">
+    <div className="min-h-screen bg-[#faf5ef] text-slate-900">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-sky-300/30 bg-[#68b9ea] px-4 py-5 shadow-xl shadow-sky-900/10 lg:block">
         <Brand childName={state.settings.childName} inverse />
         <nav className="mt-8 space-y-2">
           {navItems.map((item) => (
@@ -110,7 +110,7 @@ export default function App() {
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-10 border-b border-orange-100 bg-[#faf5ef]/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
           <Brand childName={state.settings.childName} compact />
           <div className="mt-3 grid grid-cols-5 gap-2">
             {navItems.map((item) => (
@@ -535,7 +535,7 @@ function PageTitle({ title, subtitle }) {
   return (
     <div className="page-hero">
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Parent Console</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8ba3c9]">Parent Console</p>
         <h1 className="text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-500 sm:text-base">{subtitle}</p>
       </div>

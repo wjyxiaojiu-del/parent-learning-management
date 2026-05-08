@@ -10,7 +10,7 @@ body {
   margin: 0;
   min-width: 320px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f3f6fb;
+  background: #faf5ef;
 }
 
 button,
@@ -22,43 +22,43 @@ textarea {
 
 @layer components {
   .brand-mark {
-    @apply flex h-11 w-11 items-center justify-center rounded-lg bg-sky-600 text-white shadow-lg shadow-sky-950/10;
+    @apply flex h-11 w-11 items-center justify-center rounded-xl bg-[#ff6b00] text-white shadow-lg shadow-orange-900/20;
   }
 
   .nav-button {
-    @apply flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white;
+    @apply flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/20 hover:text-white;
   }
 
   .nav-button-active {
-    @apply bg-white text-slate-950 shadow-lg shadow-black/10 hover:bg-white hover:text-slate-950;
+    @apply bg-white/25 text-white shadow-inner ring-1 ring-white/40 hover:bg-white/30 hover:text-white;
   }
 
   .mobile-tab {
-    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg bg-slate-100 px-1 text-[11px] font-medium text-slate-500;
+    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg bg-white/75 px-1 text-[11px] font-semibold text-[#8ba3c9] shadow-sm;
   }
 
   .mobile-tab-active {
-    @apply bg-sky-600 text-white shadow-md shadow-sky-900/10;
+    @apply bg-[#68b9ea] text-white shadow-md shadow-sky-900/10;
   }
 
   .page-hero {
-    @apply flex flex-col justify-between gap-4 rounded-lg border border-slate-200 bg-white px-5 py-5 shadow-soft sm:flex-row sm:items-center;
+    @apply flex flex-col justify-between gap-4 rounded-lg border border-orange-100 bg-white/75 px-5 py-5 shadow-soft backdrop-blur sm:flex-row sm:items-center;
   }
 
   .hero-date {
-    @apply inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600;
+    @apply inline-flex w-fit items-center gap-2 rounded-lg border border-orange-100 bg-white px-3 py-2 text-sm font-semibold text-[#8ba3c9];
   }
 
   .panel {
-    @apply rounded-lg border border-slate-200 bg-white p-5 shadow-soft;
+    @apply rounded-lg border border-orange-100 bg-white/80 p-5 shadow-soft backdrop-blur;
   }
 
   .panel-icon {
-    @apply flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-500;
+    @apply flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 text-[#ff6b00] shadow-sm shadow-orange-900/5;
   }
 
   .metric-card {
-    @apply rounded-lg border border-slate-200 bg-white p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg;
+    @apply rounded-lg border border-orange-100 bg-white/80 p-5 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:shadow-lg;
   }
 
   .timeline-item,
@@ -66,7 +66,7 @@ textarea {
   .course-row,
   .management-row,
   .task-row {
-    @apply flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:border-slate-300 hover:bg-slate-50;
+    @apply flex items-center justify-between gap-4 rounded-lg border border-orange-100 bg-white/90 px-4 py-3 transition hover:border-orange-200 hover:bg-white;
   }
 
   .task-row {
@@ -74,15 +74,15 @@ textarea {
   }
 
   .time-pill {
-    @apply shrink-0 rounded-md bg-sky-600 px-3 py-1 text-sm font-semibold text-white;
+    @apply shrink-0 rounded-md bg-[#ff6b00] px-3 py-1 text-sm font-semibold text-white shadow-sm shadow-orange-900/10;
   }
 
   .primary-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-sky-900/10 transition hover:bg-sky-700;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#ff6b00] px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-orange-900/15 transition hover:bg-[#f05f00];
   }
 
   .filter-bar {
-    @apply grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-soft sm:grid-cols-2;
+    @apply grid gap-3 rounded-lg border border-orange-100 bg-white/80 p-4 shadow-soft backdrop-blur sm:grid-cols-2;
   }
 
   .week-grid {
@@ -90,7 +90,7 @@ textarea {
   }
 
   .week-day {
-    @apply min-h-36 rounded-lg border border-slate-200 bg-slate-50 p-3 transition hover:border-sky-200 hover:bg-white;
+    @apply min-h-36 rounded-lg border border-orange-100 bg-[#fffaf5] p-3 transition hover:border-orange-200 hover:bg-white;
   }
 
   .mini-event {
@@ -106,11 +106,11 @@ textarea {
   }
 
   .mini-event-task {
-    @apply border border-slate-200 bg-white text-slate-700;
+    @apply border border-slate-100 bg-white text-slate-700;
   }
 
   .mini-event-course {
-    @apply border border-sky-100 bg-sky-50 text-sky-700;
+    @apply border border-sky-100 bg-sky-50 text-[#4b95cc];
   }
 
   .form-grid {
@@ -125,7 +125,7 @@ textarea {
   .field select,
   .field textarea,
   .small-select {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100;
+    @apply w-full rounded-lg border border-orange-100 bg-white px-3 py-2.5 text-sm font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#ff9b54] focus:ring-2 focus:ring-orange-100;
   }
 
   .field-compact {
@@ -133,15 +133,15 @@ textarea {
   }
 
   .tag {
-    @apply rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600;
+    @apply rounded-md bg-[#eef7fd] px-2.5 py-1 text-xs font-medium text-[#5b9ccd];
   }
 
   .subject-chip {
-    @apply rounded-md bg-sky-50 px-3 py-1.5 text-sm font-medium text-sky-700 ring-1 ring-sky-100;
+    @apply rounded-md bg-[#eef7fd] px-3 py-1.5 text-sm font-medium text-[#4b95cc] ring-1 ring-sky-100;
   }
 
   .icon-button {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700;
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border border-orange-100 bg-white text-[#8ba3c9] transition hover:border-orange-200 hover:bg-orange-50 hover:text-[#ff6b00];
   }
 
   .icon-button.danger {
