@@ -5,7 +5,10 @@ import {
   filterTasks,
   getDayName,
   getCompletionRate,
+  getHealthTrendPoints,
+  getLatestHealthRecord,
   getNextDateKey,
+  getNutritionEstimate,
   getReviewForDate,
   getSubjectSummary,
   getTaskSummary,
@@ -16,6 +19,8 @@ import {
   getWeeklyCourses,
   groupTasksByTimeBlock,
   cloneTaskForDate,
+  upsertHealthRecord,
+  upsertWorkout,
   updateSettings,
   upsertTask,
 } from './learningData';
@@ -29,6 +34,8 @@ describe('learning data helpers', () => {
     expect(state.tasks.length).toBeGreaterThan(0);
     expect(state.recurringCourses.length).toBeGreaterThan(0);
     expect(state.reviews.length).toBeGreaterThan(0);
+    expect(state.healthRecords.length).toBeGreaterThan(0);
+    expect(state.workouts.length).toBeGreaterThan(0);
   });
 
   it('counts today task summary by status', () => {
@@ -144,6 +151,19 @@ describe('learning data helpers', () => {
     expect(getReviewForDate(state, '2026-05-09')).toBeNull();
   });
 
+  it('supports structured review values', () => {
+    const state = {
+      ...createInitialState(),
+      reviews: [{ id: 'r1', date: '2026-05-08', completion: 'complete', completionPercent: 100, learningState: 'excellent' }],
+    };
+
+    expect(getReviewForDate(state, '2026-05-08')).toMatchObject({
+      completion: 'complete',
+      completionPercent: 100,
+      learningState: 'excellent',
+    });
+  });
+
   it('calculates a completion rate rounded to whole percent', () => {
     expect(getCompletionRate([{ status: 'done' }, { status: 'todo' }, { status: 'done' }])).toBe(67);
     expect(getCompletionRate([])).toBe(0);
@@ -197,6 +217,49 @@ describe('learning data helpers', () => {
 
     expect(updated.settings.childName).toBe('宁宁');
     expect(updated.tasks).toBe(state.tasks);
+  });
+
+  it('upserts health records and reads the latest record', () => {
+    const state = { ...createInitialState(), healthRecords: [] };
+    const updated = upsertHealthRecord(state, { id: 'h1', date: '2026-05-08', heightCm: 150, weightKg: 42 });
+    const next = upsertHealthRecord(updated, { id: 'h2', date: '2026-06-08', heightCm: 151, weightKg: 43 });
+
+    expect(next.healthRecords).toHaveLength(2);
+    expect(getLatestHealthRecord(next)).toMatchObject({ id: 'h2', heightCm: 151, weightKg: 43 });
+  });
+
+  it('creates trend points sorted by date', () => {
+    const state = {
+      ...createInitialState(),
+      healthRecords: [
+        { id: 'h2', date: '2026-06-08', heightCm: 151, weightKg: 43 },
+        { id: 'h1', date: '2026-05-08', heightCm: 150, weightKg: 42 },
+      ],
+    };
+
+    expect(getHealthTrendPoints(state).map((point) => point.date)).toEqual(['2026-05-08', '2026-06-08']);
+  });
+
+  it('estimates TDEE and macros from settings and latest health record', () => {
+    const state = {
+      ...createInitialState(),
+      settings: { ...createInitialState().settings, age: 12, sex: 'male', activityLevel: 'moderate' },
+      healthRecords: [{ id: 'h1', date: '2026-05-08', heightCm: 150, weightKg: 42 }],
+    };
+
+    const estimate = getNutritionEstimate(state);
+
+    expect(estimate.tdee).toBeGreaterThan(1000);
+    expect(estimate.proteinG).toBeGreaterThan(0);
+    expect(estimate.fatG).toBeGreaterThan(0);
+    expect(estimate.carbG).toBeGreaterThan(0);
+  });
+
+  it('upserts workouts and assigns duration based points', () => {
+    const state = { ...createInitialState(), workouts: [] };
+    const updated = upsertWorkout(state, { id: 'w1', date: '2026-05-08', type: '篮球', duration: 45, intensity: 'medium' });
+
+    expect(updated.workouts[0]).toMatchObject({ type: '篮球', points: 45 });
   });
 
   it('loads saved state from a storage adapter', () => {

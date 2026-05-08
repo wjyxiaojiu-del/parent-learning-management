@@ -1,6 +1,11 @@
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 const TIME_BLOCKS = ['morning', 'afternoon', 'night', 'other'];
+const ACTIVITY_FACTORS = {
+  low: 1.35,
+  moderate: 1.55,
+  high: 1.75,
+};
 
 export function getTodayKey(date = new Date()) {
   const year = date.getFullYear();
@@ -190,6 +195,74 @@ export function getReviewForDate(state, dateKey) {
   return state.reviews.find((review) => review.date === dateKey) || null;
 }
 
+export function upsertHealthRecord(state, record) {
+  const exists = (state.healthRecords || []).some((item) => item.id === record.id);
+  return {
+    ...state,
+    healthRecords: exists
+      ? state.healthRecords.map((item) => (item.id === record.id ? record : item))
+      : [...(state.healthRecords || []), record],
+  };
+}
+
+export function deleteHealthRecord(state, recordId) {
+  return {
+    ...state,
+    healthRecords: (state.healthRecords || []).filter((record) => record.id !== recordId),
+  };
+}
+
+export function getHealthTrendPoints(state) {
+  return [...(state.healthRecords || [])].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function getLatestHealthRecord(state) {
+  const records = getHealthTrendPoints(state);
+  return records[records.length - 1] || null;
+}
+
+export function getNutritionEstimate(state) {
+  const latest = getLatestHealthRecord(state);
+  if (!latest) return null;
+  const age = Number(state.settings.age) || 12;
+  const sexOffset = state.settings.sex === 'female' ? -161 : 5;
+  const activityFactor = ACTIVITY_FACTORS[state.settings.activityLevel] || ACTIVITY_FACTORS.moderate;
+  const bmr = 10 * Number(latest.weightKg) + 6.25 * Number(latest.heightCm) - 5 * age + sexOffset;
+  const tdee = Math.max(0, Math.round(bmr * activityFactor));
+  return {
+    tdee,
+    proteinG: Math.round((tdee * 0.15) / 4),
+    fatG: Math.round((tdee * 0.3) / 9),
+    carbG: Math.round((tdee * 0.55) / 4),
+  };
+}
+
+export function upsertWorkout(state, workout) {
+  const nextWorkout = {
+    ...workout,
+    duration: Number(workout.duration) || 0,
+    points: workout.points ?? calculateWorkoutPoints(workout),
+  };
+  const exists = (state.workouts || []).some((item) => item.id === nextWorkout.id);
+  return {
+    ...state,
+    workouts: exists
+      ? state.workouts.map((item) => (item.id === nextWorkout.id ? nextWorkout : item))
+      : [...(state.workouts || []), nextWorkout],
+  };
+}
+
+export function deleteWorkout(state, workoutId) {
+  return {
+    ...state,
+    workouts: (state.workouts || []).filter((workout) => workout.id !== workoutId),
+  };
+}
+
+export function getTotalWorkoutPoints(state) {
+  return (state.workouts || []).reduce((sum, workout) => sum + (Number(workout.points) || 0), 0);
+}
+
 export function getNextDateKey(dateKey) {
   const date = parseDateKey(dateKey);
   date.setDate(date.getDate() + 1);
@@ -220,10 +293,12 @@ function defaultStateBridge() {
 
 function fallbackDefaultState() {
   return {
-    settings: { childName: '小宇', subjects: ['语文', '数学', '英语', '科学', '阅读', '综合'] },
+    settings: { childName: '小宇', age: 12, sex: 'male', activityLevel: 'moderate', subjects: ['语文', '数学', '英语', '科学', '阅读', '综合'] },
     tasks: [],
     recurringCourses: [],
     reviews: [],
+    healthRecords: [],
+    workouts: [],
   };
 }
 
@@ -250,6 +325,12 @@ function compareByTime(a, b) {
 
 function compareTime(a = '23:59', b = '23:59') {
   return a.localeCompare(b);
+}
+
+function calculateWorkoutPoints(workout) {
+  const duration = Number(workout.duration) || 0;
+  const multiplier = { low: 0.8, medium: 1, high: 1.25 }[workout.intensity] || 1;
+  return Math.max(1, Math.round(duration * multiplier));
 }
 
 function getMonday(date) {

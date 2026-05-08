@@ -50,10 +50,29 @@ describe('App', () => {
     render(<App />);
 
     fireEvent.click(screen.getAllByText('每日复盘')[0]);
-    fireEvent.change(screen.getByLabelText('今日完成情况'), { target: { value: '今天按计划完成了数学和英语。' } });
+    fireEvent.change(screen.getByLabelText('完成情况'), { target: { value: 'complete' } });
+    fireEvent.change(screen.getByLabelText('完成程度'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText('学习状态'), { target: { value: 'excellent' } });
+    fireEvent.change(screen.getByLabelText('主要问题'), { target: { value: '审题仍然偏快。' } });
     fireEvent.click(screen.getByRole('button', { name: /保存复盘/ }));
 
-    expect(screen.getAllByText('今天按计划完成了数学和英语。').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/完成 · 100%/)).toBeInTheDocument();
+    expect(screen.getByText('点赞！今天完成得很好')).toBeInTheDocument();
+  });
+
+  it('records health and workout data', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getAllByText('身体运动')[0]);
+    fireEvent.change(screen.getByLabelText('身高 cm'), { target: { value: '152' } });
+    fireEvent.change(screen.getByLabelText('体重 kg'), { target: { value: '43' } });
+    fireEvent.click(screen.getByRole('button', { name: /保存身体记录/ }));
+    fireEvent.change(screen.getByLabelText('运动项目'), { target: { value: '篮球' } });
+    fireEvent.change(screen.getByLabelText('运动分钟'), { target: { value: '40' } });
+    fireEvent.click(screen.getByRole('button', { name: /保存运动/ }));
+
+    expect(screen.getByText('身体趋势')).toBeInTheDocument();
+    expect(screen.getByText('篮球')).toBeInTheDocument();
   });
 
   it('clones a task to tomorrow from the task row', () => {

@@ -3,6 +3,9 @@ const today = getDateKey(new Date());
 export const defaultState = {
   settings: {
     childName: '小宇',
+    age: 12,
+    sex: 'male',
+    activityLevel: 'moderate',
     subjects: ['语文', '数学', '英语', '科学', '阅读', '综合'],
   },
   tasks: [
@@ -69,11 +72,27 @@ export const defaultState = {
     {
       id: 'review-today',
       date: today,
-      completed: '数学口算完成一半，英语阅读进入状态较快。',
-      mood: '整体稳定，晚上略疲惫。',
+      completion: 'partial',
+      completionPercent: 65,
+      learningState: 'good',
       problems: '数学应用题审题容易跳步骤。',
       tomorrowPlan: '明天减少机械刷题，增加 2 道讲解型题目。',
-      parentNote: '表扬主动复述英语文章的表现。',
+    },
+  ],
+  healthRecords: [
+    { id: 'health-1', date: addDays(today, -60), heightCm: 149, weightKg: 40.8 },
+    { id: 'health-2', date: addDays(today, -30), heightCm: 150.4, weightKg: 41.6 },
+    { id: 'health-3', date: today, heightCm: 151.2, weightKg: 42.1 },
+  ],
+  workouts: [
+    {
+      id: 'workout-1',
+      date: today,
+      type: '跳绳',
+      duration: 25,
+      intensity: 'medium',
+      note: '完成 5 组，每组 2 分钟。',
+      points: 25,
     },
   ],
 };
@@ -83,4 +102,11 @@ function getDateKey(date) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function addDays(dateKey, diff) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + diff);
+  return getDateKey(date);
 }

@@ -7,13 +7,17 @@ import {
   Clock3,
   ClipboardCheck,
   Copy,
+  Dumbbell,
   FileText,
+  HeartPulse,
   LayoutDashboard,
   ListChecks,
   Plus,
   RotateCcw,
   Settings,
+  ThumbsUp,
   TrendingUp,
+  Trophy,
   Trash2,
 } from 'lucide-react';
 import {
@@ -21,8 +25,12 @@ import {
   deleteRecurringCourse,
   deleteReview,
   deleteTask,
+  deleteWorkout,
   filterTasks,
   getCompletionRate,
+  getHealthTrendPoints,
+  getLatestHealthRecord,
+  getNutritionEstimate,
   getNextDateKey,
   getReviewForDate,
   getSubjectSummary,
@@ -33,6 +41,9 @@ import {
   getWeekSchedule,
   getWeeklyCourses,
   groupTasksByTimeBlock,
+  getTotalWorkoutPoints,
+  upsertHealthRecord,
+  upsertWorkout,
   updateSettings,
   upsertRecurringCourse,
   upsertReview,
@@ -45,6 +56,7 @@ const navItems = [
   { id: 'tasks', label: '每日任务', icon: ListChecks },
   { id: 'courses', label: '固定课程', icon: CalendarDays },
   { id: 'reviews', label: '每日复盘', icon: FileText },
+  { id: 'health', label: '身体运动', icon: HeartPulse },
   { id: 'settings', label: '设置', icon: Settings },
 ];
 
@@ -60,6 +72,25 @@ const timeBlockLabels = {
   afternoon: '下午',
   night: '晚上',
   other: '其他',
+};
+
+const completionLabels = {
+  complete: '完成',
+  partial: '部分完成',
+  incomplete: '未完成',
+};
+
+const learningStateLabels = {
+  excellent: '优秀',
+  good: '良好',
+  average: '一般',
+  poor: '不合格',
+};
+
+const activityLabels = {
+  low: '轻度活动',
+  moderate: '中等活动',
+  high: '高活动量',
 };
 
 const emptyTask = {
@@ -83,11 +114,26 @@ const emptyCourse = {
   note: '',
 };
 
+const emptyHealthRecord = {
+  date: getTodayKey(new Date()),
+  heightCm: '',
+  weightKg: '',
+};
+
+const emptyWorkout = {
+  date: getTodayKey(new Date()),
+  type: '',
+  duration: 30,
+  intensity: 'medium',
+  note: '',
+};
+
 export default function App() {
   const [activePage, setActivePage] = useState('schedule');
   const [state, setState] = useState(() => loadLearningState());
   const [selectedDate, setSelectedDate] = useState(getTodayKey(new Date()));
   const [filters, setFilters] = useState({ subject: 'all', status: 'all' });
+  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     saveLearningState(window.localStorage, state);
@@ -112,7 +158,7 @@ export default function App() {
       <div className="lg:pl-60">
         <header className="sticky top-0 z-10 border-b border-orange-100 bg-[#faf5ef]/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
           <Brand childName={state.settings.childName} compact />
-          <div className="mt-3 grid grid-cols-5 gap-2">
+          <div className="mt-3 grid grid-cols-3 gap-2">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -149,11 +195,14 @@ export default function App() {
               review={selectedReview}
               onDateChange={setSelectedDate}
               onStateChange={setState}
+              onPraise={setFeedback}
             />
           )}
+          {activePage === 'health' && <HealthPage state={state} onStateChange={setState} />}
           {activePage === 'settings' && <SettingsPage state={state} onStateChange={setState} />}
         </main>
       </div>
+      {feedback && <PraiseToast message={feedback} onClose={() => setFeedback('')} />}
     </div>
   );
 }
@@ -411,16 +460,19 @@ function CoursesPage({ state, onStateChange }) {
   );
 }
 
-function ReviewsPage({ state, date, review, onDateChange, onStateChange }) {
-  const [form, setForm] = useState(() => review || createBlankReview(date));
+function ReviewsPage({ state, date, review, onDateChange, onStateChange, onPraise }) {
+  const [form, setForm] = useState(() => normalizeReview(review, date));
 
   useEffect(() => {
-    setForm(review || createBlankReview(date));
+    setForm(normalizeReview(review, date));
   }, [date, review]);
 
   function submitReview(event) {
     event.preventDefault();
     onStateChange((current) => upsertReview(current, { ...form, id: form.id || crypto.randomUUID(), date }));
+    if (form.completion === 'complete' || Number(form.completionPercent) >= 90 || form.learningState === 'excellent') {
+      onPraise?.('点赞！今天完成得很好');
+    }
   }
 
   return (
@@ -430,11 +482,11 @@ function ReviewsPage({ state, date, review, onDateChange, onStateChange }) {
         <Panel title="填写复盘" action={<FileText size={18} />}>
           <form className="form-grid" onSubmit={submitReview}>
             <Input label="日期" type="date" value={date} onChange={onDateChange} />
-            <Textarea label="今日完成情况" value={form.completed} onChange={(value) => setForm({ ...form, completed: value })} />
-            <Textarea label="学习状态" value={form.mood} onChange={(value) => setForm({ ...form, mood: value })} />
+            <Select label="完成情况" value={form.completion} onChange={(value) => setForm({ ...form, completion: value })} options={Object.keys(completionLabels)} labels={completionLabels} />
+            <Input label="完成程度" type="number" value={form.completionPercent} onChange={(value) => setForm({ ...form, completionPercent: value })} />
+            <Select label="学习状态" value={form.learningState} onChange={(value) => setForm({ ...form, learningState: value })} options={Object.keys(learningStateLabels)} labels={learningStateLabels} />
             <Textarea label="主要问题" value={form.problems} onChange={(value) => setForm({ ...form, problems: value })} />
             <Textarea label="明天调整" value={form.tomorrowPlan} onChange={(value) => setForm({ ...form, tomorrowPlan: value })} />
-            <Textarea label="家长备注" value={form.parentNote} onChange={(value) => setForm({ ...form, parentNote: value })} />
             <button className="primary-button" type="submit"><FileText size={18} />保存复盘</button>
           </form>
         </Panel>
@@ -445,7 +497,7 @@ function ReviewsPage({ state, date, review, onDateChange, onStateChange }) {
               <div key={item.id} className="management-row">
                 <div>
                   <p className="font-semibold">{item.date}</p>
-                  <p className="text-sm text-slate-600">{item.completed || '未填写完成情况'}</p>
+                  <p className="text-sm text-slate-600">{reviewSummary(item)}</p>
                   <p className="mt-1 text-sm text-slate-500">{item.tomorrowPlan || '未填写明天调整'}</p>
                 </div>
                 <RowActions onEdit={() => onDateChange(item.date)} onDelete={() => onStateChange((current) => deleteReview(current, item.id))} />
@@ -458,11 +510,107 @@ function ReviewsPage({ state, date, review, onDateChange, onStateChange }) {
   );
 }
 
+function HealthPage({ state, onStateChange }) {
+  const [healthForm, setHealthForm] = useState(emptyHealthRecord);
+  const [workoutForm, setWorkoutForm] = useState(emptyWorkout);
+  const trendPoints = getHealthTrendPoints(state);
+  const latest = getLatestHealthRecord(state);
+  const nutrition = getNutritionEstimate(state);
+  const points = getTotalWorkoutPoints(state);
+
+  function submitHealth(event) {
+    event.preventDefault();
+    if (!healthForm.heightCm || !healthForm.weightKg) return;
+    onStateChange((current) =>
+      upsertHealthRecord(current, {
+        ...healthForm,
+        id: healthForm.id || crypto.randomUUID(),
+        heightCm: Number(healthForm.heightCm),
+        weightKg: Number(healthForm.weightKg),
+      }),
+    );
+    setHealthForm(emptyHealthRecord);
+  }
+
+  function submitWorkout(event) {
+    event.preventDefault();
+    if (!workoutForm.type.trim()) return;
+    onStateChange((current) => upsertWorkout(current, { ...workoutForm, id: workoutForm.id || crypto.randomUUID() }));
+    setWorkoutForm(emptyWorkout);
+  }
+
+  return (
+    <section className="space-y-6">
+      <PageTitle title="身体运动" subtitle="记录身体变化、运动习惯和每日能量估算。" />
+      <div className="grid gap-4 md:grid-cols-4">
+        <Metric label="最新身高" value={latest ? `${latest.heightCm}cm` : '-'} />
+        <Metric label="最新体重" value={latest ? `${latest.weightKg}kg` : '-'} tone="green" />
+        <Metric label="运动积分" value={points} tone="amber" />
+        <Metric label="TDEE估算" value={nutrition ? `${nutrition.tdee}` : '-'} tone="blue" />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
+        <Panel title="身体趋势" action={<HeartPulse size={18} />}>
+          <HealthChart points={trendPoints} />
+        </Panel>
+
+        <Panel title="营养估算" action={<Trophy size={18} />}>
+          {nutrition ? (
+            <div className="nutrition-grid">
+              <NutritionCard label="每日热量" value={`${nutrition.tdee} kcal`} />
+              <NutritionCard label="蛋白质" value={`${nutrition.proteinG} g`} />
+              <NutritionCard label="脂肪" value={`${nutrition.fatG} g`} />
+              <NutritionCard label="碳水" value={`${nutrition.carbG} g`} />
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">先添加身高体重后生成估算。</p>
+          )}
+          <p className="mt-4 text-xs text-slate-400">仅用于家庭记录和粗略估算，不替代医生或营养师建议。</p>
+        </Panel>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <Panel title="新增记录" action={<Plus size={18} />}>
+          <form className="form-grid" onSubmit={submitHealth}>
+            <Input label="日期" type="date" value={healthForm.date} onChange={(value) => setHealthForm({ ...healthForm, date: value })} />
+            <Input label="身高 cm" type="number" value={healthForm.heightCm} onChange={(value) => setHealthForm({ ...healthForm, heightCm: value })} />
+            <Input label="体重 kg" type="number" value={healthForm.weightKg} onChange={(value) => setHealthForm({ ...healthForm, weightKg: value })} />
+            <button className="primary-button" type="submit"><HeartPulse size={18} />保存身体记录</button>
+          </form>
+        </Panel>
+
+        <Panel title="运动记录" action={<Dumbbell size={18} />}>
+          <form className="form-grid mb-4" onSubmit={submitWorkout}>
+            <Input label="日期" type="date" value={workoutForm.date} onChange={(value) => setWorkoutForm({ ...workoutForm, date: value })} />
+            <Input label="运动项目" value={workoutForm.type} onChange={(value) => setWorkoutForm({ ...workoutForm, type: value })} />
+            <Input label="运动分钟" type="number" value={workoutForm.duration} onChange={(value) => setWorkoutForm({ ...workoutForm, duration: value })} />
+            <Select label="强度" value={workoutForm.intensity} onChange={(value) => setWorkoutForm({ ...workoutForm, intensity: value })} options={['low', 'medium', 'high']} labels={{ low: '轻松', medium: '中等', high: '较强' }} />
+            <Textarea label="运动备注" value={workoutForm.note} onChange={(value) => setWorkoutForm({ ...workoutForm, note: value })} />
+            <button className="primary-button" type="submit"><Dumbbell size={18} />保存运动</button>
+          </form>
+          <div className="space-y-3">
+            {[...(state.workouts || [])].sort((a, b) => b.date.localeCompare(a.date)).map((workout) => (
+              <div key={workout.id} className="management-row">
+                <div>
+                  <p className="font-semibold">{workout.type}</p>
+                  <p className="text-sm text-slate-500">{workout.date} · {workout.duration} 分钟 · +{workout.points} 分</p>
+                  <p className="mt-1 text-sm text-[#4b95cc]">{workoutAdvice(workout)}</p>
+                </div>
+                <RowActions onEdit={() => setWorkoutForm(workout)} onDelete={() => onStateChange((current) => deleteWorkout(current, workout.id))} />
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+    </section>
+  );
+}
+
 function SettingsPage({ state, onStateChange }) {
-  const [form, setForm] = useState(state.settings);
+  const [form, setForm] = useState(() => normalizeSettings(state.settings));
 
   useEffect(() => {
-    setForm(state.settings);
+    setForm(normalizeSettings(state.settings));
   }, [state.settings]);
 
   function submitSettings(event) {
@@ -477,9 +625,12 @@ function SettingsPage({ state, onStateChange }) {
         <Panel title="基础信息" action={<Settings size={18} />}>
           <form className="form-grid" onSubmit={submitSettings}>
             <Input label="孩子姓名" value={form.childName} onChange={(value) => setForm({ ...form, childName: value })} />
+            <Input label="年龄" type="number" value={form.age} onChange={(value) => setForm({ ...form, age: value })} />
+            <Select label="性别" value={form.sex} onChange={(value) => setForm({ ...form, sex: value })} options={['male', 'female']} labels={{ male: '男', female: '女' }} />
+            <Select label="活动水平" value={form.activityLevel} onChange={(value) => setForm({ ...form, activityLevel: value })} options={Object.keys(activityLabels)} labels={activityLabels} />
             <Textarea
               label="默认科目"
-              value={form.subjects.join('、')}
+              value={(form.subjects || []).join('、')}
               onChange={(value) => setForm({ ...form, subjects: value.split(/[、,，\s]+/).filter(Boolean) })}
             />
             <button className="primary-button" type="submit"><Settings size={18} />保存设置</button>
@@ -487,7 +638,7 @@ function SettingsPage({ state, onStateChange }) {
         </Panel>
         <Panel title="当前科目" action={<BookOpen size={18} />}>
           <div className="flex flex-wrap gap-2">
-            {form.subjects.map((subject) => <span key={subject} className="subject-chip">{subject}</span>)}
+            {(form.subjects || []).map((subject) => <span key={subject} className="subject-chip">{subject}</span>)}
           </div>
         </Panel>
       </div>
@@ -616,10 +767,110 @@ function RowActions({ onEdit, onDelete }) {
 function createBlankReview(date) {
   return {
     date,
-    completed: '',
-    mood: '',
+    completion: 'partial',
+    completionPercent: 60,
+    learningState: 'good',
     problems: '',
     tomorrowPlan: '',
-    parentNote: '',
   };
+}
+
+function normalizeReview(review, date) {
+  const blank = createBlankReview(date);
+  if (!review) return blank;
+  return {
+    ...blank,
+    ...review,
+    completion: review.completion || (review.completed ? 'complete' : blank.completion),
+    completionPercent: review.completionPercent ?? (review.completed ? 100 : blank.completionPercent),
+    learningState: review.learningState || blank.learningState,
+    problems: review.problems || '',
+    tomorrowPlan: review.tomorrowPlan || '',
+  };
+}
+
+function normalizeSettings(settings = {}) {
+  return {
+    childName: '小宇',
+    age: 12,
+    sex: 'male',
+    activityLevel: 'moderate',
+    subjects: ['语文', '数学', '英语'],
+    ...settings,
+  };
+}
+
+function reviewSummary(review) {
+  const completion = completionLabels[review.completion] || review.completed || '未填写完成情况';
+  const percent = review.completionPercent ? ` · ${review.completionPercent}%` : '';
+  const state = learningStateLabels[review.learningState] ? ` · ${learningStateLabels[review.learningState]}` : '';
+  return `${completion}${percent}${state}`;
+}
+
+function NutritionCard({ label, value }) {
+  return (
+    <div className="nutrition-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function HealthChart({ points }) {
+  if (points.length === 0) return <p className="text-sm text-slate-400">暂无身体记录。</p>;
+  const width = 640;
+  const height = 230;
+  const padding = 34;
+  const heightValues = points.map((point) => Number(point.heightCm));
+  const weightValues = points.map((point) => Number(point.weightKg));
+  const heightPath = buildPath(heightValues, width, height, padding);
+  const weightPath = buildPath(weightValues, width, height, padding);
+
+  return (
+    <div className="chart-wrap">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="身高体重趋势图">
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#e8d8c8" />
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#e8d8c8" />
+        <path d={heightPath} fill="none" stroke="#ff6b00" strokeWidth="3" />
+        <path d={weightPath} fill="none" stroke="#68b9ea" strokeWidth="3" />
+      </svg>
+      <div className="chart-legend"><span className="legend-height" />身高 <span className="legend-weight" />体重</div>
+    </div>
+  );
+}
+
+function buildPath(values, width, height, padding) {
+  if (values.length === 1) {
+    return `M ${padding} ${height / 2} L ${width - padding} ${height / 2}`;
+  }
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  return values
+    .map((value, index) => {
+      const x = padding + (index * (width - padding * 2)) / (values.length - 1);
+      const y = height - padding - ((value - min) / range) * (height - padding * 2);
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+    })
+    .join(' ');
+}
+
+function workoutAdvice(workout) {
+  if (workout.intensity === 'high' || Number(workout.duration) >= 45) return '运动量不错，注意补水和拉伸。';
+  if (Number(workout.duration) >= 20) return '保持稳定节奏，适合形成习惯。';
+  return '今天先动起来就很好，可以逐步增加时长。';
+}
+
+function PraiseToast({ message, onClose }) {
+  useEffect(() => {
+    const timer = window.setTimeout(onClose, 2200);
+    return () => window.clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="praise-toast">
+      <ThumbsUp size={26} />
+      <span>{message}</span>
+    </div>
+  );
 }
