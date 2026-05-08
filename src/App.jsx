@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BookOpen,
   CalendarDays,
@@ -99,9 +99,9 @@ export default function App() {
   const summary = getTaskSummary(todayTasks);
 
   return (
-    <div className="min-h-screen bg-[#f7f4ee] text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-white/70 bg-white/80 px-4 py-5 shadow-soft backdrop-blur-xl lg:block">
-        <Brand childName={state.settings.childName} />
+    <div className="min-h-screen bg-[#f3f6fb] text-slate-900">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-800 bg-[#111827] px-4 py-5 shadow-2xl lg:block">
+        <Brand childName={state.settings.childName} inverse />
         <nav className="mt-8 space-y-2">
           {navItems.map((item) => (
             <NavButton key={item.id} item={item} active={activePage === item.id} onClick={() => setActivePage(item.id)} />
@@ -110,7 +110,7 @@ export default function App() {
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-white/70 bg-[#f7f4ee]/90 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
           <Brand childName={state.settings.childName} compact />
           <div className="mt-3 grid grid-cols-5 gap-2">
             {navItems.map((item) => (
@@ -126,7 +126,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {activePage === 'schedule' && (
             <SchedulePage state={state} summary={summary} todayTasks={todayTasks} onNavigate={setActivePage} />
           )}
@@ -158,15 +158,15 @@ export default function App() {
   );
 }
 
-function Brand({ childName, compact = false }) {
+function Brand({ childName, compact = false, inverse = false }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white">
+      <div className="brand-mark">
         <BookOpen size={22} />
       </div>
       <div>
-        <p className={`font-semibold ${compact ? 'text-base' : 'text-lg'}`}>家长学习管理台</p>
-        <p className="text-sm text-slate-500">{childName} 的学习节奏</p>
+        <p className={`font-semibold ${compact ? 'text-base' : 'text-lg'} ${inverse ? 'text-white' : 'text-slate-950'}`}>家长学习管理台</p>
+        <p className={`text-sm ${inverse ? 'text-slate-400' : 'text-slate-500'}`}>{childName} 的学习节奏</p>
       </div>
     </div>
   );
@@ -533,19 +533,26 @@ function TaskGroup({ title, tasks, onEdit, onDelete, onClone, onStatus }) {
 
 function PageTitle({ title, subtitle }) {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">{title}</h1>
-      <p className="mt-2 text-sm text-slate-500 sm:text-base">{subtitle}</p>
+    <div className="page-hero">
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Parent Console</p>
+        <h1 className="text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">{title}</h1>
+        <p className="mt-2 max-w-2xl text-sm text-slate-500 sm:text-base">{subtitle}</p>
+      </div>
+      <div className="hero-date">
+        <CalendarDays size={18} />
+        <span>{getTodayKey(new Date())}</span>
+      </div>
     </div>
   );
 }
 
 function Panel({ title, action, children }) {
   return (
-    <section className="rounded-lg border border-white/80 bg-white/85 p-5 shadow-soft">
+    <section className="panel">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-        {action && <div className="text-slate-400">{action}</div>}
+        {action && <div className="panel-icon">{action}</div>}
       </div>
       {children}
     </section>
@@ -560,7 +567,7 @@ function Metric({ label, value, tone = 'slate' }) {
     blue: 'text-sky-700 bg-sky-50',
   }[tone];
   return (
-    <div className="rounded-lg border border-white/80 bg-white/85 p-5 shadow-soft">
+    <div className="metric-card">
       <p className="text-sm text-slate-500">{label}</p>
       <p className={`mt-3 inline-flex min-w-14 justify-center rounded-lg px-3 py-2 text-2xl font-semibold ${toneClass}`}>{value}</p>
     </div>
