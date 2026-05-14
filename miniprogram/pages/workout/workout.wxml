@@ -1,0 +1,49 @@
+<view class="page" wx:if="{{!_loading}}">
+  <view class="hero">
+    <text class="eyebrow">WORKOUT</text>
+    <text class="title">运动打卡</text>
+  </view>
+
+  <!-- 快速打卡 -->
+  <view class="card">
+    <text class="card-title">选择运动</text>
+    <view class="sport-grid">
+      <view wx:for="{{presets}}" wx:key="*this"
+        class="sport-item {{form.type === item ? 'active' : ''}}"
+        bindtap="selectSport" data-sport="{{item}}">
+        <text class="sport-icon">{{index === 0 ? '🤸' : index === 1 ? '🏃' : index === 2 ? '🏊' : index === 3 ? '🏀' : index === 4 ? '🏸' : index === 5 ? '🚴' : '🚶'}}</text>
+        <text class="sport-name">{{item}}</text>
+      </view>
+    </view>
+
+    <text class="card-title">时长</text>
+    <view class="duration-picker">
+      <view class="duration-btn" bindtap="decreaseDuration">-</view>
+      <view class="duration-value">{{form.duration}}<text class="duration-unit"> 分钟</text></view>
+      <view class="duration-btn" bindtap="increaseDuration">+</view>
+    </view>
+
+    <view class="points-preview">
+      预计获得 +{{form.points}} 积分
+    </view>
+
+    <button class="button" bindtap="saveWorkout">打卡</button>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="card" wx:if="{{workouts.length > 0}}">
+    <text class="card-title">打卡记录</text>
+    <view wx:for="{{workouts}}" wx:key="id" class="row">
+      <view class="row-main">
+        <text class="row-title">{{item.type}}</text>
+        <text class="row-sub">{{item.date}} · {{item.duration}}分钟 · +{{item.points}}分</text>
+      </view>
+      <text class="del-btn" data-id="{{item.id}}" catchtap="deleteWorkout">×</text>
+    </view>
+  </view>
+
+  <view wx:if="{{workouts.length === 0}}" class="empty">
+    <text class="empty-icon">🏃</text>
+    <text>还没有运动记录</text>
+  </view>
+</view>

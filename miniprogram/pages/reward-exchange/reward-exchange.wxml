@@ -1,0 +1,54 @@
+<view class="page" wx:if="{{!_loading}}">
+  <view class="hero">
+    <text class="eyebrow">REWARDS</text>
+    <text class="title">奖励兑换</text>
+    <text class="subtitle">当前积分 {{totalPoints}}</text>
+  </view>
+
+  <!-- 添加奖励 -->
+  <view class="card">
+    <text class="card-title">添加奖励</text>
+    <view class="form">
+      <view class="field">
+        <text class="label">奖励名称</text>
+        <input class="input" value="{{form.title}}" bindinput="onTitleInput" placeholder="例如：周末自由阅读" />
+      </view>
+      <view class="field">
+        <text class="label">所需积分</text>
+        <input class="input" type="number" value="{{form.cost}}" bindinput="onCostInput" placeholder="20" />
+      </view>
+      <button class="button" bindtap="addReward">添加</button>
+    </view>
+  </view>
+
+  <!-- 奖励列表 -->
+  <view class="card" wx:if="{{rewards.length > 0}}">
+    <text class="card-title">奖励列表</text>
+    <view wx:for="{{rewards}}" wx:key="id" class="row">
+      <view class="row-main">
+        <text class="row-title">{{item.title}}</text>
+        <text class="row-sub">{{item.cost}} 积分</text>
+      </view>
+      <view class="reward-btns">
+        <button class="{{item.canRedeem ? 'button-light' : 'btn-grey'}}" size="mini" data-id="{{item.id}}" bindtap="redeem">兑换</button>
+        <text class="del-btn" data-id="{{item.id}}" catchtap="deleteReward">×</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{rewards.length === 0}}" class="empty">
+    <text class="empty-icon">🎁</text>
+    <text>还没有奖励，添加一个吧</text>
+  </view>
+
+  <!-- 兑换记录 -->
+  <view class="card" wx:if="{{redeemHistory.length > 0}}">
+    <text class="card-title">兑换记录</text>
+    <view wx:for="{{redeemHistory}}" wx:key="id" class="row">
+      <view class="row-main">
+        <text class="row-title">{{item.reason}}</text>
+        <text class="row-sub">{{item.date}} · {{item.points}}积分</text>
+      </view>
+    </view>
+  </view>
+</view>

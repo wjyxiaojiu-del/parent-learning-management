@@ -1,0 +1,39 @@
+<view class="page" wx:if="{{!_loading}}">
+  <view class="hero">
+    <text class="eyebrow">SETTINGS</text>
+    <text class="title">设置</text>
+  </view>
+
+  <view class="card">
+    <text class="card-title">孩子信息</text>
+    <view class="form">
+      <view class="field">
+        <text class="label">姓名</text>
+        <input class="input" data-key="childName" value="{{childName}}" bindinput="onInput" />
+      </view>
+      <view class="field">
+        <text class="label">年龄</text>
+        <input class="input" type="number" data-key="age" value="{{age}}" bindinput="onInput" />
+      </view>
+      <button class="button" bindtap="saveSettings">保存</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">科目</text>
+    <view class="subject-tags">
+      <view wx:for="{{subjects}}" wx:key="*this" class="subject-tag">
+        <text>{{item}}</text>
+        <text class="tag-x" data-name="{{item}}" catchtap="removeSubject">×</text>
+      </view>
+    </view>
+    <view class="add-row">
+      <input class="input" value="{{newSubject}}" bindinput="onNewSubjectInput" placeholder="新科目" bindconfirm="addSubject" />
+      <button class="button" size="mini" bindtap="addSubject">添加</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <button class="button-light reset-btn" bindtap="resetData">重置所有数据</button>
+  </view>
+</view>

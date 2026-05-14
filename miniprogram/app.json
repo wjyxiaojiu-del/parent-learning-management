@@ -1,0 +1,47 @@
+{
+  "pages": [
+    "pages/today/today",
+    "pages/records/records",
+    "pages/profile/profile",
+    "pages/review-detail/review-detail",
+    "pages/settings/settings",
+    "pages/workout/workout",
+    "pages/health-growth/health-growth",
+    "pages/reward-exchange/reward-exchange",
+    "pages/course-manage/course-manage"
+  ],
+  "window": {
+    "navigationBarTitleText": "家长学习管理台",
+    "navigationBarBackgroundColor": "#FDFBF7",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FDFBF7"
+  },
+  "tabBar": {
+    "color": "#94A3B8",
+    "selectedColor": "#FF9F1C",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/today/today",
+        "text": "今日",
+        "iconPath": "assets/home.png",
+        "selectedIconPath": "assets/home-active.png"
+      },
+      {
+        "pagePath": "pages/records/records",
+        "text": "记录",
+        "iconPath": "assets/tasks.png",
+        "selectedIconPath": "assets/tasks-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/profile.png",
+        "selectedIconPath": "assets/profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

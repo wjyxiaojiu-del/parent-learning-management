@@ -1,0 +1,52 @@
+<view class="page" wx:if="{{!_loading}}">
+  <view class="hero">
+    <text class="eyebrow">REVIEW</text>
+    <text class="title">每日复盘</text>
+    <text class="subtitle">一分钟记录，不给自己加负担。</text>
+  </view>
+
+  <view class="card">
+    <view class="form">
+      <view class="field">
+        <text class="label">完成情况</text>
+        <picker range="{{completionRange}}" bindchange="onCompletionChange">
+          <view class="picker">{{completionText}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">学习状态</text>
+        <picker range="{{learningStateRange}}" bindchange="onLearningStateChange">
+          <view class="picker">{{learningStateText}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">主要问题</text>
+        <textarea class="textarea" data-form="form" data-key="problems" value="{{form.problems}}" bindinput="onInput" placeholder="有什么问题记一下" />
+      </view>
+      <view class="preset-row">
+        <text wx:for="{{problemPresets}}" wx:key="*this" class="preset-chip" data-text="{{item}}" bindtap="useProblemPreset">{{item}}</text>
+      </view>
+      <view class="field">
+        <text class="label">明天调整</text>
+        <textarea class="textarea" data-form="form" data-key="tomorrowPlan" value="{{form.tomorrowPlan}}" bindinput="onInput" placeholder="明天怎么调整" />
+      </view>
+      <view class="preset-row">
+        <text wx:for="{{tomorrowPresets}}" wx:key="*this" class="preset-chip" data-text="{{item}}" bindtap="useTomorrowPreset">{{item}}</text>
+      </view>
+      <button class="button" bindtap="saveReview">保存复盘</button>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{reviews.length > 0}}">
+    <text class="card-title">历史复盘</text>
+    <view wx:for="{{reviews}}" wx:key="id" class="review-row">
+      <view class="review-main">
+        <text class="review-date">{{item.date}}</text>
+        <text class="review-info">{{item.completionText}} · {{item.learningStateText}}</text>
+        <text wx:if="{{item.problems}}" class="review-detail">问题：{{item.problems}}</text>
+        <text wx:if="{{item.tomorrowPlan}}" class="review-detail">调整：{{item.tomorrowPlan}}</text>
+      </view>
+      <text class="review-del" data-id="{{item.id}}" catchtap="deleteReview">×</text>
+    </view>
+  </view>
+</view>

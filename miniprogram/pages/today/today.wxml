@@ -1,0 +1,115 @@
+<view class="page" wx:if="{{!_loading}}">
+  <!-- 积分动画 -->
+  <view wx:if="{{showPointsAnim}}" class="points-anim">
+    <text class="points-anim-text">+{{animPoints}}</text>
+  </view>
+
+  <!-- 顶部概览 -->
+  <view class="hero">
+    <text class="eyebrow">TODAY</text>
+    <text class="title">{{childName}} 的今日</text>
+    <text class="subtitle">{{todayLabel}} · {{todayKey}}</text>
+  </view>
+
+  <!-- 数据卡片 -->
+  <view class="grid">
+    <view class="metric">
+      <text class="metric-label">任务</text>
+      <text class="metric-value">{{summary.total}}</text>
+    </view>
+    <view class="metric">
+      <text class="metric-label">完成</text>
+      <text class="metric-value">{{summary.completed}}</text>
+    </view>
+    <view class="metric">
+      <text class="metric-label">完成率</text>
+      <text class="metric-value">{{completionRate}}%</text>
+    </view>
+    <view class="metric">
+      <text class="metric-label">积分</text>
+      <text class="metric-value">{{totalPoints}}</text>
+    </view>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-bar" wx:if="{{summary.total > 0}}">
+    <view class="progress-fill" style="width: {{completionRate}}%"></view>
+  </view>
+
+  <!-- 添加任务 -->
+  <view class="card">
+    <text class="card-title">添加任务</text>
+    <view class="add-task-form">
+      <input
+        class="add-input"
+        value="{{form.title}}"
+        placeholder="输入任务名称..."
+        bindinput="onFormInput"
+        bindconfirm="addTask"
+        focus="{{inputFocus}}"
+      />
+      <view class="add-row">
+        <picker class="add-picker-wrap" range="{{subjects}}" bindchange="onSubjectChange">
+          <view class="add-picker">{{form.subject}}</view>
+        </picker>
+        <button class="button add-btn" bindtap="addTask">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 任务列表 -->
+  <view class="card">
+    <text class="card-title">今日任务</text>
+
+    <view wx:if="{{tasks.length > 0}}" class="task-list">
+      <view wx:for="{{tasks}}" wx:key="id" class="task-item {{item.isDone ? 'done' : ''}}">
+        <view class="task-check" data-id="{{item.id}}" bindtap="toggleDone">
+          <view class="check-circle {{item.isDone ? 'checked' : ''}}">
+            <text wx:if="{{item.isDone}}" class="check-icon">✓</text>
+          </view>
+        </view>
+        <view class="task-content">
+          <text class="task-title {{item.isDone ? 'strike' : ''}}">{{item.title}}</text>
+          <text class="task-meta">{{item.subject}}<text wx:if="{{item.isDone}}" class="task-points"> +{{item.points}}分</text></text>
+        </view>
+        <view class="task-btns">
+          <view wx:if="{{!item.isDone}}" class="task-btn defer" data-id="{{item.id}}" bindtap="deferTask">
+            <text>明天</text>
+          </view>
+          <view class="task-btn delete" data-id="{{item.id}}" bindtap="deleteTask">
+            <text>×</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{tasks.length === 0}}" class="empty">
+      <text class="empty-icon">📋</text>
+      <text>今天还没有任务</text>
+      <text style="display:block;margin-top:8rpx;font-size:22rpx;">添加一个开始吧</text>
+    </view>
+  </view>
+
+  <!-- 快速复盘 -->
+  <view class="card">
+    <text class="card-title">今日复盘</text>
+    <view class="review-shortcuts">
+      <button class="button review-btn" bindtap="quickReview">今天还行</button>
+      <button class="button-light review-btn" bindtap="goDetailReview">详细复盘</button>
+    </view>
+  </view>
+
+  <!-- 今日课程 -->
+  <view class="card" wx:if="{{courses.length > 0}}">
+    <text class="card-title">今日课程</text>
+    <view wx:for="{{courses}}" wx:key="id" class="row">
+      <view class="row-main">
+        <text class="row-title">{{item.title}}</text>
+        <text class="row-sub">{{item.startTime}}-{{item.endTime}} · {{item.subject}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部间距 -->
+  <view style="height: 40rpx;"></view>
+</view>

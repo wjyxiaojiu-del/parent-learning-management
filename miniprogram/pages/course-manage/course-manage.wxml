@@ -1,0 +1,60 @@
+<view class="page" wx:if="{{!_loading}}">
+  <view class="hero">
+    <text class="eyebrow">COURSES</text>
+    <text class="title">固定课程</text>
+    <text class="subtitle">每周固定的学习安排</text>
+  </view>
+
+  <!-- 添加课程 -->
+  <view class="card">
+    <text class="card-title">添加课程</text>
+    <view class="form">
+      <view class="field">
+        <text class="label">课程名称</text>
+        <input class="input" value="{{form.title}}" bindinput="onTitleInput" placeholder="例如：数学思维课" />
+      </view>
+      <view class="field">
+        <text class="label">科目</text>
+        <picker range="{{subjects}}" bindchange="onSubjectChange">
+          <view class="picker">{{form.subject}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">星期</text>
+        <picker range="{{weekdays}}" bindchange="onWeekdayChange">
+          <view class="picker">{{form.weekday}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">开始时间</text>
+        <picker mode="time" value="{{form.startTime}}" bindchange="onStartTimeChange">
+          <view class="picker">{{form.startTime}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">结束时间</text>
+        <picker mode="time" value="{{form.endTime}}" bindchange="onEndTimeChange">
+          <view class="picker">{{form.endTime}}</view>
+        </picker>
+      </view>
+      <button class="button" bindtap="addCourse">添加</button>
+    </view>
+  </view>
+
+  <!-- 课程列表 -->
+  <view class="card" wx:if="{{courses.length > 0}}">
+    <text class="card-title">课程列表（{{courses.length}}）</text>
+    <view wx:for="{{courses}}" wx:key="id" class="row">
+      <view class="row-main">
+        <text class="row-title">{{item.title}}</text>
+        <text class="row-sub">{{item.weekday}} {{item.startTime}}-{{item.endTime}} · {{item.subject}}</text>
+      </view>
+      <text class="del-btn" data-id="{{item.id}}" catchtap="deleteCourse">×</text>
+    </view>
+  </view>
+
+  <view wx:if="{{courses.length === 0}}" class="empty">
+    <text class="empty-icon">📚</text>
+    <text>还没有课程</text>
+  </view>
+</view>

@@ -1,0 +1,82 @@
+<view class="page" wx:if="{{!_loading}}">
+  <view class="hero">
+    <text class="eyebrow">RECORDS</text>
+    <text class="title">学习记录</text>
+  </view>
+
+  <!-- 积分概览 -->
+  <view class="points-card">
+    <text class="points-num">{{totalPoints}}</text>
+    <text class="points-label">可用积分</text>
+  </view>
+
+  <!-- 功能入口 -->
+  <view class="card">
+    <view class="entry-item" bindtap="goWorkout">
+      <view class="entry-icon">🏃</view>
+      <view class="entry-content">
+        <text class="entry-title">运动打卡</text>
+        <text class="entry-desc">记录运动时长，赚取积分</text>
+      </view>
+      <view class="entry-right">
+        <text class="entry-count" wx:if="{{workoutCount > 0}}">{{workoutCount}}次</text>
+        <text class="entry-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="entry-item" bindtap="goHealthGrowth">
+      <view class="entry-icon">📏</view>
+      <view class="entry-content">
+        <text class="entry-title">身高体重</text>
+        <text class="entry-desc">记录成长数据</text>
+      </view>
+      <view class="entry-right">
+        <text class="entry-count" wx:if="{{latestHealth}}">{{latestHealth.heightCm}}cm</text>
+        <text class="entry-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="entry-item" bindtap="goRewardExchange">
+      <view class="entry-icon">🎁</view>
+      <view class="entry-content">
+        <text class="entry-title">奖励兑换</text>
+        <text class="entry-desc">用积分兑换奖励</text>
+      </view>
+      <view class="entry-right">
+        <text class="entry-count" wx:if="{{rewardCount > 0}}">{{rewardCount}}个</text>
+        <text class="entry-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="entry-item" bindtap="goCourseManage">
+      <view class="entry-icon">📚</view>
+      <view class="entry-content">
+        <text class="entry-title">固定课程</text>
+        <text class="entry-desc">管理每周课程安排</text>
+      </view>
+      <view class="entry-right">
+        <text class="entry-count" wx:if="{{courseCount > 0}}">{{courseCount}}节</text>
+        <text class="entry-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近动态 -->
+  <view class="card" wx:if="{{recentActivities.length > 0}}">
+    <text class="card-title">最近动态</text>
+    <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" style="animation-delay: {{index * 0.1}}s;">
+      <text class="activity-icon">{{item.icon}}</text>
+      <view class="activity-content">
+        <text class="activity-text">{{item.text}}</text>
+        <text class="activity-time">{{item.time}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{recentActivities.length === 0}}" class="card">
+    <view class="empty">
+      <text class="empty-icon">📊</text>
+      <text>还没有记录，去打卡吧</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,81 @@
+/* 详细复盘页 */
+
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.preset-chip {
+  font-size: 24rpx;
+  padding: 12rpx 20rpx;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1rpx solid rgba(255, 226, 194, 0.6);
+  border-radius: 20rpx;
+  color: #475569;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.preset-chip:active {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+}
+
+.review-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid rgba(255, 240, 222, 0.6);
+}
+
+.review-row:last-child {
+  border-bottom: none;
+}
+
+.review-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-date {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #172033;
+  margin-bottom: 6rpx;
+}
+
+.review-info {
+  display: block;
+  font-size: 22rpx;
+  color: #94a3b8;
+  margin-bottom: 8rpx;
+}
+
+.review-detail {
+  display: block;
+  font-size: 24rpx;
+  color: #475569;
+  margin-top: 6rpx;
+  line-height: 1.6;
+}
+
+.review-del {
+  flex-shrink: 0;
+  font-size: 28rpx;
+  color: #ef4444;
+  width: 48rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.review-del:active {
+  transform: scale(0.9);
+}
