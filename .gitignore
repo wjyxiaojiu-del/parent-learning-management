@@ -10,3 +10,14 @@ coverage/
 .env
 .env.local
 project.private.config.json
+__pycache__/
+*.pyc
+.next/
+*.sqlite
+data/
+outputs/
+pdf_pages/
+github-upload/
+doc_review_extract/
+doc_review_render/
+doc_review_render_final/
