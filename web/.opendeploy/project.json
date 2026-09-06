@@ -1,0 +1,10 @@
+{
+  "project_id": "8d0db891-5df0-4bc0-8992-c865356766ce",
+  "service_id": "1f2ce97e-6bd1-44be-8e09-43121a99b3a9",
+  "deployment_id": "29fe91f3-663b-44ed-ba15-188b66f76fb1",
+  "account_binding_url": "https://dashboard.opendeploy.dev/guest/a385e11f-052b-499c-be3d-f5c3917407b3?h=5d491e3c9e03a355&url=https%3A%2F%2F1f2ce97e.opendeploy.site",
+  "version": 1,
+  "root": "E:\\Project coding\\家长学习管理台-微信小程序\\web",
+  "updated_at": "2026-06-20T09:45:45.392Z",
+  "live_url": "https://1f2ce97e.opendeploy.site"
+}

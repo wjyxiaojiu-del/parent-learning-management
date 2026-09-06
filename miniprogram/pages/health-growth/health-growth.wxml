@@ -9,10 +9,42 @@
     <view class="growth-item">
       <text class="growth-label">身高</text>
       <text class="growth-value">{{latest.heightCm}}<text class="growth-unit">cm</text></text>
+      <view class="trend-badge {{trends.height > 0 ? 'trend-up' : trends.height < 0 ? 'trend-down' : 'trend-same'}}" wx:if="{{trends.heightText}}">
+        <text>{{trends.heightText}}</text>
+      </view>
     </view>
     <view class="growth-item">
       <text class="growth-label">体重</text>
       <text class="growth-value">{{latest.weightKg}}<text class="growth-unit">kg</text></text>
+      <view class="trend-badge {{trends.weight > 0 ? 'trend-up' : trends.weight < 0 ? 'trend-down' : 'trend-same'}}" wx:if="{{trends.weightText}}">
+        <text>{{trends.weightText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 趋势图表 -->
+  <view class="card" wx:if="{{chartData.dates.length > 1}}">
+    <text class="card-title">变化趋势</text>
+    <view class="chart-container">
+      <view class="chart-legend">
+        <view class="legend-item">
+          <view class="legend-dot" style="background: #ff9f1c;"></view>
+          <text class="legend-text">身高 (cm)</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot" style="background: #4b95cc;"></view>
+          <text class="legend-text">体重 (kg)</text>
+        </view>
+      </view>
+      <view class="chart-bars">
+        <view wx:for="{{chartData.dates}}" wx:key="*this" class="chart-bar-group">
+          <view class="chart-bar-wrapper">
+            <view class="chart-bar height-bar" style="height: {{chartData.heights[index] / 2}}%;"></view>
+            <view class="chart-bar weight-bar" style="height: {{chartData.weights[index] * 2}}%;"></view>
+          </view>
+          <text class="chart-label">{{item}}</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -34,7 +66,7 @@
 
   <!-- 历史记录 -->
   <view class="card" wx:if="{{records.length > 0}}">
-    <text class="card-title">历史记录</text>
+    <text class="card-title">历史记录 ({{records.length}})</text>
     <view wx:for="{{records}}" wx:key="id" class="row">
       <view class="row-main">
         <text class="row-title">{{item.date}}</text>

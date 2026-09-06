@@ -1,5 +1,12 @@
 /* 设置页 */
 
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
 .subject-tags {
   display: flex;
   flex-wrap: wrap;
@@ -39,7 +46,67 @@
   flex: 1;
 }
 
+/* 同步状态 */
+.sync-status {
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.sync-status.idle {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.sync-status.syncing {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.sync-status.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.sync-status.error {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* 提示文字 */
+.hint-text {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+/* 数据面板 */
+.data-panel {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(255, 240, 222, 0.6);
+}
+
+.data-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.data-actions .button-light {
+  flex: 1;
+}
+
+.toggle-icon {
+  font-size: 24rpx;
+  color: #94a3b8;
+}
+
 .reset-btn {
+  margin-top: 24rpx;
   width: 100%;
   color: #ef4444 !important;
   border-color: rgba(239, 68, 68, 0.3) !important;

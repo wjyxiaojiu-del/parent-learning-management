@@ -14,7 +14,9 @@
     "navigationBarTitleText": "家长学习管理台",
     "navigationBarBackgroundColor": "#FDFBF7",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#FDFBF7"
+    "backgroundColor": "#FDFBF7",
+    "enablePullDownRefresh": false,
+    "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "color": "#94A3B8",
@@ -43,5 +45,6 @@
     ]
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
 }

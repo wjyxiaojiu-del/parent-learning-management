@@ -1,0 +1,13 @@
+{
+  "name": "web-novol",
+  "type": "web",
+  "language": "node",
+  "framework": "express",
+  "port": 3000,
+  "dockerfile_path": "Dockerfile",
+  "runtime_variables": {
+    "JWT_SECRET": "3e1d05954b86593c2b64368b17e69ae6b970585868629a3eb8ff719c1e172f2acacf0aa428cdb84c0a75ad4c8a2e0ee3",
+    "DB_PATH": "/tmp/data.db"
+  },
+  "build_variables": {}
+}

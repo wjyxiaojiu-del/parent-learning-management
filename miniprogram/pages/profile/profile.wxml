@@ -1,10 +1,74 @@
 <view class="page" wx:if="{{!_loading}}">
   <view class="hero">
-    <text class="eyebrow">PROFILE</text>
-    <text class="title">{{childName}} 的管理台</text>
-    <text class="subtitle">当前积分 {{totalPoints}}</text>
+    <view class="hero-content">
+      <text class="eyebrow">PROFILE</text>
+      <text class="title">{{childName}} 的管理台</text>
+      <text class="subtitle">年龄 {{age}} 岁 · 积分 {{totalPoints}}</text>
+    </view>
   </view>
 
+  <!-- 本周进度 -->
+  <view class="progress-card">
+    <view class="progress-header">
+      <text class="progress-title">本周进度</text>
+      <text class="progress-value">{{weekProgress}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{weekProgress}}%"></view>
+    </view>
+  </view>
+
+  <!-- 数据统计 -->
+  <view class="card">
+    <text class="card-title">学习统计</text>
+    <view class="stats-grid">
+      <view class="stat-item" bindtap="goWorkout">
+        <text class="stat-value">{{stats.totalWorkouts}}</text>
+        <text class="stat-label">运动次数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.completedTasks}}</text>
+        <text class="stat-label">完成任务</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.totalReviews}}</text>
+        <text class="stat-label">复盘次数</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最新健康数据 -->
+  <view class="card" wx:if="{{latestHealth}}" bindtap="goHealthGrowth">
+    <text class="card-title">最新健康数据</text>
+    <view class="health-preview">
+      <view class="health-item">
+        <text class="health-value">{{latestHealth.heightCm}}<text class="health-unit">cm</text></text>
+        <text class="health-label">身高</text>
+      </view>
+      <view class="health-divider"></view>
+      <view class="health-item">
+        <text class="health-value">{{latestHealth.weightKg}}<text class="health-unit">kg</text></text>
+        <text class="health-label">体重</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 成就徽章 -->
+  <view class="card">
+    <text class="card-title">成就徽章</text>
+    <view class="achievements-grid">
+      <view wx:for="{{achievements}}" wx:key="title" class="achievement-item {{item.unlocked ? 'unlocked' : 'locked'}}">
+        <text class="achievement-icon">{{item.icon}}</text>
+        <text class="achievement-title">{{item.title}}</text>
+        <text class="achievement-desc">{{item.desc}}</text>
+        <view wx:if="{{!item.unlocked}}" class="achievement-progress">
+          <view class="achievement-progress-bar" style="width: {{item.progress / item.target * 100}}%"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能入口 -->
   <view class="card">
     <view class="entry-item" bindtap="goSettings">
       <view class="entry-icon">⚙️</view>
@@ -14,5 +78,39 @@
       </view>
       <text class="entry-arrow">›</text>
     </view>
+
+    <view class="entry-item" bindtap="goWorkout">
+      <view class="entry-icon">🏃</view>
+      <view class="entry-content">
+        <text class="entry-title">运动打卡</text>
+        <text class="entry-desc">记录运动，赚取积分</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
+    <view class="entry-item" bindtap="goHealthGrowth">
+      <view class="entry-icon">📏</view>
+      <view class="entry-content">
+        <text class="entry-title">身高体重</text>
+        <text class="entry-desc">记录成长数据</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
+    <view class="entry-item" bindtap="goRewardExchange">
+      <view class="entry-icon">🎁</view>
+      <view class="entry-content">
+        <text class="entry-title">奖励兑换</text>
+        <text class="entry-desc">用积分兑换奖励</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="card about-card">
+    <text class="about-title">家长学习管理台</text>
+    <text class="about-version">v1.0.0</text>
+    <text class="about-desc">帮助家长科学管理孩子的学习生活</text>
   </view>
 </view>

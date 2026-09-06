@@ -1,0 +1,197 @@
+{
+  "status": "ready",
+  "confidence": 0.7,
+  "source": "E:\\Project coding\\家长学习管理台-微信小程序\\web",
+  "generated_at": "2026-06-20T08:14:14.211Z",
+  "analysis": {
+    "project_name": "web",
+    "language": "",
+    "package_manager": "",
+    "framework": "",
+    "services": [
+      {
+        "name": "web",
+        "source_path": ".",
+        "language": "",
+        "framework": "",
+        "package_manager": "npm",
+        "build_command": "",
+        "start_command": "",
+        "dockerfile": true,
+        "dockerfile_path": "Dockerfile",
+        "docker_exposed_ports": [
+          3000
+        ],
+        "ignored_ports": [],
+        "unsupported_protocols": [],
+        "port": 3000,
+        "port_evidence": "Dockerfile EXPOSE 3000; selected 3000 as HTTP listener",
+        "persistent_paths": [],
+        "dependencies": [],
+        "runtime_vars": [
+          "DB_PATH",
+          "JWT_SECRET",
+          "PORT"
+        ],
+        "build_time_vars": [],
+        "late_bound_url_keys": []
+      }
+    ],
+    "warnings": []
+  },
+  "context": {
+    "project_id": null,
+    "service_id": null,
+    "deployment_id": null,
+    "source": "new_project",
+    "reason": "No saved OpenDeploy context found."
+  },
+  "complexity": {
+    "level": 3,
+    "class": "dockerfile",
+    "reason": "Existing Dockerfile must be honored and audited."
+  },
+  "services": [
+    {
+      "name": "web",
+      "source_path": ".",
+      "language": "",
+      "framework": "",
+      "package_manager": "npm",
+      "build_command": "",
+      "start_command": "",
+      "dockerfile": true,
+      "dockerfile_path": "Dockerfile",
+      "docker_exposed_ports": [
+        3000
+      ],
+      "ignored_ports": [],
+      "unsupported_protocols": [],
+      "port": 3000,
+      "port_evidence": "Dockerfile EXPOSE 3000; selected 3000 as HTTP listener",
+      "persistent_paths": [],
+      "dependencies": [],
+      "runtime_vars": [
+        "DB_PATH",
+        "JWT_SECRET",
+        "PORT"
+      ],
+      "build_time_vars": [],
+      "late_bound_url_keys": []
+    }
+  ],
+  "dependencies": [],
+  "env": {
+    "user_env_keys": [],
+    "user_build_env_keys": [],
+    "values_redacted": true
+  },
+  "env_contract": {
+    "web": []
+  },
+  "ports": {
+    "web": 3000
+  },
+  "evidence": [
+    {
+      "service": "web",
+      "decision": "source_root",
+      "value": ".",
+      "evidence": "Using repository root."
+    },
+    {
+      "service": "web",
+      "decision": "deploy_mode",
+      "value": "existing_dockerfile",
+      "evidence": "Source-root Dockerfile exists."
+    },
+    {
+      "service": "web",
+      "decision": "port",
+      "value": 3000,
+      "evidence": "Dockerfile EXPOSE 3000; selected 3000 as HTTP listener"
+    }
+  ],
+  "platform_fit": {
+    "one_http_port": true,
+    "requires_persistent_filesystem": false,
+    "requires_object_storage": false,
+    "unsupported_protocols": []
+  },
+  "archive_manifest": {
+    "excluded_patterns": [
+      ".git/*",
+      "node_modules/*",
+      "dist/*",
+      "target/*",
+      "platform/*",
+      "coverage/*",
+      ".next/*",
+      ".turbo/*",
+      ".cache/*",
+      ".parcel-cache/*",
+      ".venv/*",
+      "__pycache__/*",
+      "*.pyc",
+      ".opendeploy/*",
+      ".env",
+      ".env.*",
+      ".pypirc",
+      ".netrc",
+      "*.pem",
+      "*.key",
+      "id_rsa",
+      "id_rsa.pub",
+      "id_ed25519",
+      "id_ed25519.pub",
+      "credentials.json",
+      "service-account*.json",
+      "*kubeconfig*",
+      "build/*"
+    ],
+    "included_overrides": [],
+    "required_files": [],
+    "excluded_required_files": [],
+    "secret_like_entries": [],
+    "git_metadata": {
+      "required": false,
+      "bind_mount": false,
+      "references": [],
+      "git_path_type": "missing",
+      "archive_excludes_git": true,
+      "suggested_build_vars": [
+        "GIT_COMMIT",
+        "APP_VERSION",
+        "SOURCE_VERSION"
+      ]
+    },
+    "warnings": []
+  },
+  "mutations": [
+    "create_project",
+    "create_service:web",
+    "upload_source",
+    "create_deployment",
+    "resolve_domain"
+  ],
+  "consents": [
+    {
+      "kind": "guest_credential"
+    }
+  ],
+  "blocking_issues": [],
+  "warnings": [],
+  "review": {
+    "blocking_issues": [],
+    "warnings": []
+  },
+  "fallback_commands": [
+    "opendeploy regions list --json",
+    "opendeploy projects create --name <name> --repo file://upload --skip-validation true --json",
+    "opendeploy dependencies create --body .opendeploy/dependency-<dependency>.json --json",
+    "opendeploy dependencies status <project-id> --json",
+    "opendeploy services create <project-id> --body service.json --json",
+    "opendeploy upload update-source <project-id> <source-path> --project-name <name> --region-id <region-id> --json",
+    "opendeploy deployments create --project <project-id> --service <service-id> --json"
+  ]
+}

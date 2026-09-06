@@ -6,8 +6,33 @@
 
   <!-- 积分概览 -->
   <view class="points-card">
-    <text class="points-num">{{totalPoints}}</text>
-    <text class="points-label">可用积分</text>
+    <view class="points-main">
+      <text class="points-num">{{totalPoints}}</text>
+      <text class="points-label">可用积分</text>
+    </view>
+    <view class="points-stats" wx:if="{{streakDays > 0}}">
+      <text class="streak-icon">🔥</text>
+      <text class="streak-text">连续 {{streakDays}} 天</text>
+    </view>
+  </view>
+
+  <!-- 本周统计 -->
+  <view class="card">
+    <text class="card-title">本周统计</text>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{weeklyStats.taskCompletion}}%</text>
+        <text class="stat-label">任务完成率</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{weeklyStats.workoutDays}}</text>
+        <text class="stat-label">运动天数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{weeklyStats.totalStudyMinutes}}</text>
+        <text class="stat-label">运动分钟</text>
+      </view>
+    </view>
   </view>
 
   <!-- 功能入口 -->
@@ -58,6 +83,15 @@
         <text class="entry-count" wx:if="{{courseCount > 0}}">{{courseCount}}节</text>
         <text class="entry-arrow">›</text>
       </view>
+    </view>
+
+    <view class="entry-item" bindtap="goReviewDetail">
+      <view class="entry-icon">📝</view>
+      <view class="entry-content">
+        <text class="entry-title">每日复盘</text>
+        <text class="entry-desc">记录学习状态和问题</text>
+      </view>
+      <text class="entry-arrow">›</text>
     </view>
   </view>
 

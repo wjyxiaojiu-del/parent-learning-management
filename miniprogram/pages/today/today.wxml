@@ -6,9 +6,17 @@
 
   <!-- 顶部概览 -->
   <view class="hero">
-    <text class="eyebrow">TODAY</text>
-    <text class="title">{{childName}} 的今日</text>
-    <text class="subtitle">{{todayLabel}} · {{todayKey}}</text>
+    <view class="hero-header">
+      <view>
+        <text class="eyebrow">TODAY</text>
+        <text class="title">{{greeting}}，{{childName}}</text>
+        <text class="subtitle">{{todayLabel}} · {{todayKey}}</text>
+      </view>
+      <view class="streak-badge" wx:if="{{streakDays > 0}}">
+        <text class="streak-num">{{streakDays}}</text>
+        <text class="streak-label">天连续</text>
+      </view>
+    </view>
   </view>
 
   <!-- 数据卡片 -->
@@ -32,13 +40,35 @@
   </view>
 
   <!-- 进度条 -->
-  <view class="progress-bar" wx:if="{{summary.total > 0}}">
-    <view class="progress-fill" style="width: {{completionRate}}%"></view>
+  <view class="progress-section" wx:if="{{summary.total > 0}}">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{completionRate}}%"></view>
+    </view>
+    <text class="progress-text">{{completionRate}}%</text>
   </view>
 
   <!-- 添加任务 -->
   <view class="card">
-    <text class="card-title">添加任务</text>
+    <view class="card-header">
+      <text class="card-title">添加任务</text>
+      <view class="preset-toggle" bindtap="togglePresets">
+        <text>{{showPresets ? '收起' : '快捷'}}</text>
+      </view>
+    </view>
+
+    <!-- 预设任务 -->
+    <view class="preset-section" wx:if="{{showPresets}}">
+      <view class="preset-grid">
+        <view wx:for="{{taskPresets}}" wx:key="title"
+          class="preset-item"
+          data-title="{{item.title}}" data-subject="{{item.subject}}"
+          bindtap="quickAddPreset">
+          <text class="preset-title">{{item.title}}</text>
+          <text class="preset-subject">{{item.subject}}</text>
+        </view>
+      </view>
+    </view>
+
     <view class="add-task-form">
       <input
         class="add-input"
@@ -59,7 +89,17 @@
 
   <!-- 任务列表 -->
   <view class="card">
-    <text class="card-title">今日任务</text>
+    <view class="card-header">
+      <text class="card-title">今日任务</text>
+      <view class="task-actions">
+        <view class="sort-btn" bindtap="changeSortBy">
+          <text>{{sortBy === 'default' ? '默认' : sortBy === 'subject' ? '科目' : '状态'}}</text>
+        </view>
+        <view class="batch-btn" bindtap="batchComplete" wx:if="{{summary.incomplete > 1}}">
+          <text>全完成</text>
+        </view>
+      </view>
+    </view>
 
     <view wx:if="{{tasks.length > 0}}" class="task-list">
       <view wx:for="{{tasks}}" wx:key="id" class="task-item {{item.isDone ? 'done' : ''}}">
@@ -70,7 +110,10 @@
         </view>
         <view class="task-content">
           <text class="task-title {{item.isDone ? 'strike' : ''}}">{{item.title}}</text>
-          <text class="task-meta">{{item.subject}}<text wx:if="{{item.isDone}}" class="task-points"> +{{item.points}}分</text></text>
+          <view class="task-meta-row">
+            <text class="task-subject-tag">{{item.subject}}</text>
+            <text wx:if="{{item.isDone}}" class="task-points">+{{item.points}}分</text>
+          </view>
         </view>
         <view class="task-btns">
           <view wx:if="{{!item.isDone}}" class="task-btn defer" data-id="{{item.id}}" bindtap="deferTask">

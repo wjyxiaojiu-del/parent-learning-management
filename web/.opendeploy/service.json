@@ -1,0 +1,20 @@
+{
+  "name": "web",
+  "type": "web",
+  "language": "node",
+  "framework": "express",
+  "port": 3000,
+  "dockerfile_path": "Dockerfile",
+  "runtime_variables": {
+    "JWT_SECRET": "632c187fb612fbc69321ae0588424fde35dd8b0b37694d4f44927099f4a85a7f019c0866d9ff9e0fedda908184e32f82",
+    "DB_PATH": "/data/data.db"
+  },
+  "build_variables": {},
+  "volumes": [
+    {
+      "name": "data",
+      "mount_path": "/data",
+      "size": "1Gi"
+    }
+  ]
+}

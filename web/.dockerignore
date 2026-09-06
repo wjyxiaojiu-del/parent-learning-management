@@ -1,0 +1,7 @@
+backend/node_modules
+backend/data.db
+backend/data.db-shm
+backend/data.db-wal
+**/*.log
+.opendeploy
+tools
